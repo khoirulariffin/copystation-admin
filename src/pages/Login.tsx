@@ -12,17 +12,18 @@ import { supabase } from '@/integrations/supabase/client';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    console.log("Login page - isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+    if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to admin");
-      navigate('/admin');
+      navigate('/admin', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,22 +33,24 @@ const Login = () => {
       return;
     }
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
+      console.log("Attempting login with:", email);
       await login(email, password);
+      console.log("Login function completed, isAuthenticated should update soon");
       // Navigation happens in the useEffect when isAuthenticated changes
     } catch (error) {
       // Error is handled inside the login function
       console.error('Login failed:', error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   // Function to create demo users (admin and editor)
   const createDemoUsers = async () => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
       // Create admin user
@@ -106,9 +109,20 @@ const Login = () => {
       console.error('Error creating demo users:', error);
       toast.error(error.message || 'Failed to create demo users');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-50 to-blue-100 p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p>Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-50 to-blue-100 p-4">
@@ -158,9 +172,9 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </Button>
               </div>
             </form>
@@ -173,7 +187,7 @@ const Login = () => {
               variant="outline" 
               className="w-full"
               onClick={createDemoUsers}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Create Demo Users (Admin & Editor)
             </Button>
