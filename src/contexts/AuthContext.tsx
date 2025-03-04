@@ -57,11 +57,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const profile = await getUserProfile(session.user.id);
           
           if (profile) {
+            // Validate and cast role to the correct type
+            const validRole = profile.role as 'admin' | 'editor' | 'viewer';
+            
             setUser({
               id: session.user.id,
               name: profile.name,
               email: session.user.email || '',
-              role: profile.role,
+              role: validRole,
               avatar: profile.avatar
             });
             
@@ -87,11 +90,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profile = await getUserProfile(session.user.id);
         
         if (profile) {
+          // Validate and cast role to the correct type
+          const validRole = profile.role as 'admin' | 'editor' | 'viewer';
+          
           setUser({
             id: session.user.id,
             name: profile.name,
             email: session.user.email || '',
-            role: profile.role,
+            role: validRole,
             avatar: profile.avatar
           });
         }
