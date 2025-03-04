@@ -40,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      console.log('Retrieved user profile:', data);
       return data;
     } catch (error) {
       console.error('Error in getUserProfile:', error);
@@ -49,8 +50,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Set up auth state listener
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setIsLoading(true);
         
         if (event === 'SIGNED_IN' && session) {
@@ -68,6 +72,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               avatar: profile.avatar
             });
             
+            console.log('User authenticated and profile loaded', validRole);
+            
             // Update last login timestamp
             await supabase
               .from('profiles')
@@ -75,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', session.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
           setUser(null);
         }
         
@@ -84,9 +91,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get initial session
     const initializeAuth = async () => {
+      console.log('Initializing auth');
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
+        console.log('Found existing session:', session.user.id);
         const profile = await getUserProfile(session.user.id);
         
         if (profile) {
@@ -100,7 +109,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: validRole,
             avatar: profile.avatar
           });
+          
+          console.log('User profile loaded from existing session', validRole);
+        } else {
+          console.log('No profile found for user with existing session');
         }
+      } else {
+        console.log('No existing session found');
       }
       
       setIsLoading(false);
@@ -117,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      console.log('Attempting login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -124,6 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) throw error;
       
+      console.log('Login successful, session:', data?.session?.user?.id);
       toast.success('Login successful');
     } catch (error: any) {
       console.error('Login error:', error);

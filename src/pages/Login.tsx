@@ -19,6 +19,7 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("User is authenticated, redirecting to admin");
       navigate('/admin');
     }
   }, [isAuthenticated, navigate]);
@@ -35,7 +36,7 @@ const Login = () => {
     
     try {
       await login(email, password);
-      // Redirect happens automatically through the useEffect
+      // Navigation happens in the useEffect when isAuthenticated changes
     } catch (error) {
       // Error is handled inside the login function
       console.error('Login failed:', error);

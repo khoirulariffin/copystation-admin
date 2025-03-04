@@ -24,17 +24,31 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
+    console.log("User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
   
+  console.log("User authenticated, rendering protected route");
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={
+        isAuthenticated ? <Navigate to="/admin" replace /> : <LandingPage />
+      } />
+      
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/admin" replace /> : <Login />
+      } />
       
       {/* Protected Admin Routes */}
       <Route path="/admin" element={
