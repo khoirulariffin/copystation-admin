@@ -168,19 +168,26 @@ const ProductForm: React.FC<ProductFormProps> = ({
           )}
         />
 
-        {field => field.value && (
-          <div className="rounded border p-4">
-            <p className="text-sm font-medium mb-2">Image Preview</p>
-            <img 
-              src={form.watch('image')} 
-              alt="Product preview" 
-              className="w-full h-40 object-contain rounded bg-gray-50"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
-              }}
-            />
-          </div>
-        )}
+        {/* Fixing the error: Converting the function to a proper FormField component */}
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            field.value ? (
+              <div className="rounded border p-4">
+                <p className="text-sm font-medium mb-2">Image Preview</p>
+                <img 
+                  src={field.value} 
+                  alt="Product preview" 
+                  className="w-full h-40 object-contain rounded bg-gray-50"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
+                  }}
+                />
+              </div>
+            ) : null
+          )}
+        />
 
         <div className="flex justify-end gap-4">
           <Button
