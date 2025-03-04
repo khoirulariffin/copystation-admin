@@ -8,6 +8,9 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Dashboard from "./pages/admin/Dashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import ProductManagement from "./pages/admin/ProductManagement";
+import ArticleManagement from "./pages/admin/ArticleManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,8 +42,21 @@ const AppRoutes = () => {
           <Dashboard />
         </ProtectedRoute>
       } />
-      
-      {/* Add more routes as needed */}
+      <Route path="/admin/users" element={
+        <ProtectedRoute>
+          <UserManagement />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/products" element={
+        <ProtectedRoute>
+          <ProductManagement />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/articles" element={
+        <ProtectedRoute>
+          <ArticleManagement />
+        </ProtectedRoute>
+      } />
       
       {/* Catch-all route for 404 */}
       <Route path="*" element={<NotFound />} />
