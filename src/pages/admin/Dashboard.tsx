@@ -1,380 +1,173 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ArrowUpCircle, 
-  ArrowDownCircle, 
-  ShoppingBag, 
-  FileText,
-  Users,
-  Clock
-} from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockDashboardStats, mockProducts } from '@/data/mockData';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardStats } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import SeedDataButton from '@/components/admin/SeedDataButton';
 
 const Dashboard = () => {
-  const [timeRange, setTimeRange] = useState('month');
-  const stats = mockDashboardStats;
-
-  // Mock time-series data
-  const productViewsData = [
-    { name: 'Jan', current: 1200, previous: 900 },
-    { name: 'Feb', current: 1400, previous: 1000 },
-    { name: 'Mar', current: 1300, previous: 1100 },
-    { name: 'Apr', current: 1500, previous: 1200 },
-    { name: 'May', current: 1700, previous: 1300 },
-    { name: 'Jun', current: 1832, previous: 1547 }
-  ];
-
-  const articleViewsData = [
-    { name: 'Jan', views: 500 },
-    { name: 'Feb', views: 600 },
-    { name: 'Mar', views: 700 },
-    { name: 'Apr', views: 800 },
-    { name: 'May', views: 950 },
-    { name: 'Jun', views: 1123 }
-  ];
-
-  const categoryData = [
-    { name: 'Paper', value: 35 },
-    { name: 'Stationery', value: 25 },
-    { name: 'Office Supplies', value: 20 },
-    { name: 'Printing Services', value: 15 },
-    { name: 'Electronics', value: 5 }
-  ];
-
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  // Fetch dashboard statistics from Supabase
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async (): Promise<DashboardStats> => {
+      // Get products count and stats
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, stock, views');
+      
+      if (productsError) throw productsError;
+      
+      // Get articles count and stats
+      const { data: articles, error: articlesError } = await supabase
+        .from('articles')
+        .select('id, views');
+      
+      if (articlesError) throw articlesError;
+      
+      // Get profiles count
+      const { count: usersCount, error: usersError } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact' });
+      
+      if (usersError) throw usersError;
+      
+      // Calculate dashboard stats
+      const totalProducts = products?.length || 0;
+      const availableProducts = products?.filter(p => p.stock > 0).length || 0;
+      const outOfStockProducts = totalProducts - availableProducts;
+      
+      const productViews = {
+        current: products?.reduce((sum, p) => sum + p.views, 0) || 0,
+        previous: 0, // We don't have historical data yet
+        percentChange: 0,
+      };
+      
+      const totalArticles = articles?.length || 0;
+      
+      const articleViews = {
+        current: articles?.reduce((sum, a) => sum + a.views, 0) || 0,
+        previous: 0, // We don't have historical data yet
+        percentChange: 0,
+      };
+      
+      const userActivity = {
+        total: usersCount || 0,
+        active: usersCount || 0, // All users are considered active for now
+        percentChange: 0,
+      };
+      
+      return {
+        totalProducts,
+        availableProducts,
+        outOfStockProducts,
+        productViews,
+        totalArticles,
+        articleViews,
+        userActivity
+      };
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   return (
     <AdminLayout title="Dashboard">
-      <div className="grid gap-6">
-        {/* Time range selector */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Overview</h2>
-          <div className="flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <Select defaultValue={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select time range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="quarter">This Quarter</SelectItem>
-                <SelectItem value="year">This Year</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <ShoppingBag className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.totalProducts}</div>
-              <div className="flex items-center pt-1">
-                <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-500">
-                    {stats.availableProducts} available, {stats.outOfStockProducts} out of stock
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Product Views</CardTitle>
-              <ShoppingBag className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.productViews.current}</div>
-              <div className="flex items-center pt-1">
-                {stats.productViews.percentChange > 0 ? (
-                  <ArrowUpCircle className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <ArrowDownCircle className="h-4 w-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${stats.productViews.percentChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {Math.abs(stats.productViews.percentChange)}%
-                </span>
-                <span className="text-sm font-medium text-gray-500 ml-1">
-                  vs. last {timeRange}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Article Views</CardTitle>
-              <FileText className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.articleViews.current}</div>
-              <div className="flex items-center pt-1">
-                {stats.articleViews.percentChange > 0 ? (
-                  <ArrowUpCircle className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <ArrowDownCircle className="h-4 w-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${stats.articleViews.percentChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {Math.abs(stats.articleViews.percentChange)}%
-                </span>
-                <span className="text-sm font-medium text-gray-500 ml-1">
-                  vs. last {timeRange}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">User Activity</CardTitle>
-              <Users className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.userActivity.total}</div>
-              <div className="flex items-center pt-1">
-                {stats.userActivity.percentChange > 0 ? (
-                  <ArrowUpCircle className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <ArrowDownCircle className="h-4 w-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${stats.userActivity.percentChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {Math.abs(stats.userActivity.percentChange)}%
-                </span>
-                <span className="text-sm font-medium text-gray-500 ml-1">
-                  vs. last {timeRange}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="hover-card">
-            <CardHeader>
-              <CardTitle>Product Views Trend</CardTitle>
-              <CardDescription>Comparison with previous period</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={productViewsData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="current"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      activeDot={{ r: 8 }}
-                      name="Current Period"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="previous"
-                      stroke="#94a3b8"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      name="Previous Period"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-card">
-            <CardHeader>
-              <CardTitle>Article Views</CardTitle>
-              <CardDescription>Monthly article engagement</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={articleViewsData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="views" name="Views" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 hover-card">
-            <CardHeader>
-              <CardTitle>Product Stock Overview</CardTitle>
-              <CardDescription>Current inventory status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="all">All Products</TabsTrigger>
-                  <TabsTrigger value="low">Low Stock</TabsTrigger>
-                  <TabsTrigger value="out">Out of Stock</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all" className="space-y-4">
-                  <div className="max-h-[300px] overflow-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-4 font-medium text-gray-500">Product</th>
-                          <th className="text-left py-2 px-4 font-medium text-gray-500">Category</th>
-                          <th className="text-right py-2 px-4 font-medium text-gray-500">Stock</th>
-                          <th className="text-right py-2 px-4 font-medium text-gray-500">Price</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mockProducts.map((product) => (
-                          <tr key={product.id} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-4">{product.name}</td>
-                            <td className="py-3 px-4 text-gray-500">{product.category}</td>
-                            <td className="py-3 px-4 text-right">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                product.stock === 0 
-                                  ? 'bg-red-100 text-red-800' 
-                                  : product.stock <= 10 
-                                    ? 'bg-amber-100 text-amber-800' 
-                                    : 'bg-green-100 text-green-800'
-                              }`}>
-                                {product.stock === 0 ? 'Out of Stock' : product.stock}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-right">Rp {product.price.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-                <TabsContent value="low">
-                  <div className="max-h-[300px] overflow-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-4 font-medium text-gray-500">Product</th>
-                          <th className="text-left py-2 px-4 font-medium text-gray-500">Category</th>
-                          <th className="text-right py-2 px-4 font-medium text-gray-500">Stock</th>
-                          <th className="text-right py-2 px-4 font-medium text-gray-500">Price</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mockProducts.filter(p => p.stock > 0 && p.stock <= 10).map((product) => (
-                          <tr key={product.id} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-4">{product.name}</td>
-                            <td className="py-3 px-4 text-gray-500">{product.category}</td>
-                            <td className="py-3 px-4 text-right">
-                              <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
-                                {product.stock}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-right">Rp {product.price.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-                <TabsContent value="out">
-                  <div className="max-h-[300px] overflow-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-4 font-medium text-gray-500">Product</th>
-                          <th className="text-left py-2 px-4 font-medium text-gray-500">Category</th>
-                          <th className="text-right py-2 px-4 font-medium text-gray-500">Stock</th>
-                          <th className="text-right py-2 px-4 font-medium text-gray-500">Price</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mockProducts.filter(p => p.stock === 0).map((product) => (
-                          <tr key={product.id} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-4">{product.name}</td>
-                            <td className="py-3 px-4 text-gray-500">{product.category}</td>
-                            <td className="py-3 px-4 text-right">
-                              <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                                Out of Stock
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-right">Rp {product.price.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-card">
-            <CardHeader>
-              <CardTitle>Product Categories</CardTitle>
-              <CardDescription>Distribution by category</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold">Dashboard</h2>
+        <SeedDataButton />
       </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="h-40">
+              <CardHeader className="h-full bg-gray-100 rounded-md" />
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Products</CardTitle>
+              <CardDescription>Total products in inventory</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.totalProducts || 0}</div>
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              {stats?.availableProducts || 0} available, {stats?.outOfStockProducts || 0} out of stock
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Product Views</CardTitle>
+              <CardDescription>Total product page visits</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.productViews.current || 0}</div>
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              {/* Since we don't have historical data yet */}
+              Just started tracking
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Articles</CardTitle>
+              <CardDescription>Total published articles</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.totalArticles || 0}</div>
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              {stats?.articleViews.current || 0} total views
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Article Views</CardTitle>
+              <CardDescription>Total article page visits</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.articleViews.current || 0}</div>
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              {/* Since we don't have historical data yet */}
+              Just started tracking
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">User Activity</CardTitle>
+              <CardDescription>Total registered users</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats?.userActivity.total || 0}</div>
+            </CardContent>
+            <CardFooter className="text-sm text-muted-foreground">
+              {stats?.userActivity.active || 0} active users
+            </CardFooter>
+          </Card>
+
+          <Card className="bg-blue-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Quick Tips</CardTitle>
+              <CardDescription>Getting started</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm space-y-2">
+              <p>• Create test users on the Login page</p>
+              <p>• Use "Create Sample Data" to add demo content</p>
+              <p>• View and manage data in the admin tables</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </AdminLayout>
   );
 };

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { UserPlus } from 'lucide-react';
@@ -10,8 +10,8 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { User } from '@/types';
-import { mockUsers } from '@/data/mockData';
 import UserForm from '@/components/admin/UserForm';
+import { supabase } from '@/integrations/supabase/client';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,18 +20,38 @@ const UserManagement = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
-  // In a real app, this would be a query to your backend/API
+  // Fetch users from Supabase
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['users'],
-    queryFn: () => Promise.resolve(mockUsers),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast.error('Failed to fetch users');
+        throw error;
+      }
+      
+      // Convert to User type
+      return data.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: '', // Email is not stored in profiles table for security
+        role: user.role as 'admin' | 'editor' | 'viewer',
+        avatar: user.avatar,
+        createdAt: user.created_at,
+        lastLogin: user.last_login
+      }));
+    },
   });
 
   const filteredUsers = users?.filter(user => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
-      user.name.toLowerCase().includes(term) ||
-      user.email.toLowerCase().includes(term)
+      user.name.toLowerCase().includes(term)
     );
   }) || [];
 
@@ -39,10 +59,6 @@ const UserManagement = () => {
     {
       header: 'Name',
       accessor: 'name',
-    },
-    {
-      header: 'Email',
-      accessor: 'email',
     },
     {
       header: 'Role',
@@ -85,16 +101,16 @@ const UserManagement = () => {
     setIsDeleting(true);
     
     try {
-      // In a real app, you would call your API here
-      // For mock data, we'll just show a success message
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Delete user via Supabase Auth API
+      const { error } = await supabase.auth.admin.deleteUser(selectedUser.id);
+      
+      if (error) throw error;
       
       toast.success(`User "${selectedUser.name}" deleted successfully`);
       setIsDeleteDialogOpen(false);
-      // Refetch users after delete
       refetch();
-    } catch (error) {
-      toast.error('Failed to delete user');
+    } catch (error: any) {
+      toast.error(`Failed to delete user: ${error.message}`);
       console.error(error);
     } finally {
       setIsDeleting(false);
@@ -103,20 +119,29 @@ const UserManagement = () => {
 
   const handleFormSubmit = async (userData: Partial<User>) => {
     try {
-      // In a real app, you would call your API here
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (selectedUser) {
+        // Update existing user
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: userData.name,
+            role: userData.role,
+            avatar: userData.avatar
+          })
+          .eq('id', selectedUser.id);
+        
+        if (error) throw error;
+        
         toast.success(`User "${userData.name}" updated successfully`);
       } else {
-        toast.success(`User "${userData.name}" created successfully`);
+        // Create new user - this is handled by SignUp and the trigger
+        toast.info('New users need to register through the auth system');
       }
       
       setIsFormDialogOpen(false);
-      // Refetch users after create/update
       refetch();
-    } catch (error) {
-      toast.error(selectedUser ? 'Failed to update user' : 'Failed to create user');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update user');
       console.error(error);
     }
   };
@@ -134,7 +159,7 @@ const UserManagement = () => {
       <SearchFilter
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        placeholder="Search users by name or email..."
+        placeholder="Search users by name..."
       />
 
       {isLoading ? (

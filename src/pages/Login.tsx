@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,13 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/admin');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +35,75 @@ const Login = () => {
     
     try {
       await login(email, password);
-      navigate('/admin');
+      // Redirect happens automatically through the useEffect
     } catch (error) {
       // Error is handled inside the login function
       console.error('Login failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to create demo users (admin and editor)
+  const createDemoUsers = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Create admin user
+      const { data: adminData, error: adminError } = await supabase.auth.signUp({
+        email: 'admin@example.com',
+        password: 'password123',
+        options: {
+          data: {
+            name: 'Admin User'
+          }
+        }
+      });
+      
+      if (adminError) throw adminError;
+      
+      // Set admin role directly in profiles table
+      if (adminData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('id', adminData.user.id);
+          
+        if (profileError) throw profileError;
+      }
+      
+      // Create editor user
+      const { data: editorData, error: editorError } = await supabase.auth.signUp({
+        email: 'editor@example.com',
+        password: 'password123',
+        options: {
+          data: {
+            name: 'Editor User'
+          }
+        }
+      });
+      
+      if (editorError) throw editorError;
+      
+      // Set editor role directly in profiles table
+      if (editorData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role: 'editor' })
+          .eq('id', editorData.user.id);
+          
+        if (profileError) throw profileError;
+      }
+      
+      toast.success('Demo users created! Check emails for confirmation links or disable email verification in Supabase dashboard.');
+      
+      // Fill in the admin email for convenience
+      setEmail('admin@example.com');
+      setPassword('password123');
+      
+    } catch (error: any) {
+      console.error('Error creating demo users:', error);
+      toast.error(error.message || 'Failed to create demo users');
     } finally {
       setIsLoading(false);
     }
@@ -91,10 +164,18 @@ const Login = () => {
               </div>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col items-center">
-            <p className="text-sm text-gray-500 mt-2">
-              For demo purposes, use: admin@example.com / password
+          <CardFooter className="flex flex-col items-center gap-4">
+            <p className="text-sm text-gray-500">
+              Don't have an account yet? Create demo users below.
             </p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={createDemoUsers}
+              disabled={isLoading}
+            >
+              Create Demo Users (Admin & Editor)
+            </Button>
           </CardFooter>
         </Card>
       </div>

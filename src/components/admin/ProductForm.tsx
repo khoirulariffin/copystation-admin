@@ -54,6 +54,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const isSubmitting = form.formState.isSubmitting;
+  const imageUrl = form.watch('image');
 
   return (
     <Form {...form}>
@@ -168,26 +169,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
           )}
         />
 
-        {/* Fixing the error: Converting the function to a proper FormField component */}
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            field.value ? (
-              <div className="rounded border p-4">
-                <p className="text-sm font-medium mb-2">Image Preview</p>
-                <img 
-                  src={field.value} 
-                  alt="Product preview" 
-                  className="w-full h-40 object-contain rounded bg-gray-50"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
-                  }}
-                />
-              </div>
-            ) : null
-          )}
-        />
+        {imageUrl && (
+          <div className="rounded border p-4">
+            <p className="text-sm font-medium mb-2">Image Preview</p>
+            <img 
+              src={imageUrl} 
+              alt="Product preview" 
+              className="w-full h-40 object-contain rounded bg-gray-50"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
+              }}
+            />
+          </div>
+        )}
 
         <div className="flex justify-end gap-4">
           <Button

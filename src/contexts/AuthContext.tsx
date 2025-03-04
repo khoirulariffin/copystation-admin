@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
 type User = {
   id: string;
@@ -24,58 +26,116 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user', error);
-        localStorage.removeItem('user');
+  // Function to get user profile from Supabase
+  const getUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
       }
+
+      return data;
+    } catch (error) {
+      console.error('Error in getUserProfile:', error);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  // Set up auth state listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setIsLoading(true);
+        
+        if (event === 'SIGNED_IN' && session) {
+          const profile = await getUserProfile(session.user.id);
+          
+          if (profile) {
+            setUser({
+              id: session.user.id,
+              name: profile.name,
+              email: session.user.email || '',
+              role: profile.role,
+              avatar: profile.avatar
+            });
+            
+            // Update last login timestamp
+            await supabase
+              .from('profiles')
+              .update({ last_login: new Date().toISOString() })
+              .eq('id', session.user.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Get initial session
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const profile = await getUserProfile(session.user.id);
+        
+        if (profile) {
+          setUser({
+            id: session.user.id,
+            name: profile.name,
+            email: session.user.email || '',
+            role: profile.role,
+            avatar: profile.avatar
+          });
+        }
+      }
+      
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Mock login function - would connect to Supabase in production
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // Mock login delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // Admin login for demo purposes
-      if (email === 'admin@example.com' && password === 'password') {
-        const mockUser: User = {
-          id: '1',
-          name: 'Admin User',
-          email: 'admin@example.com',
-          role: 'admin',
-          avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=3B82F6&color=fff'
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        toast.success('Login successful');
-        return;
-      }
+      if (error) throw error;
       
-      throw new Error('Invalid credentials');
-    } catch (error) {
-      console.error('Login failed:', error);
-      toast.error('Login failed. Please check your credentials.');
+      toast.success('Login successful');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error(error.message || 'Login failed. Please check your credentials.');
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    toast.info('Logged out successfully');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.info('Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+    }
   };
 
   return (

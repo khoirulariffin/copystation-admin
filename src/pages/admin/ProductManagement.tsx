@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Product } from '@/types';
 import { mockProducts, productCategories } from '@/data/mockData';
 import ProductForm from '@/components/admin/ProductForm';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProductManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,10 +22,33 @@ const ProductManagement = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
-  // In a real app, this would be a query to your backend/API
+  // Fetch products from Supabase
   const { data: products, isLoading, refetch } = useQuery({
     queryKey: ['products'],
-    queryFn: () => Promise.resolve(mockProducts),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast.error('Failed to fetch products');
+        throw error;
+      }
+      
+      return data.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        stock: product.stock,
+        image: product.image,
+        views: product.views,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      }));
+    },
   });
 
   const filteredProducts = products?.filter(product => {
@@ -104,14 +128,18 @@ const ProductManagement = () => {
     setIsDeleting(true);
     
     try {
-      // In a real app, you would call your API here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', selectedProduct.id);
+      
+      if (error) throw error;
       
       toast.success(`Product "${selectedProduct.name}" deleted successfully`);
       setIsDeleteDialogOpen(false);
       refetch();
-    } catch (error) {
-      toast.error('Failed to delete product');
+    } catch (error: any) {
+      toast.error(`Failed to delete product: ${error.message}`);
       console.error(error);
     } finally {
       setIsDeleting(false);
@@ -120,19 +148,51 @@ const ProductManagement = () => {
 
   const handleFormSubmit = async (productData: Partial<Product>) => {
     try {
-      // In a real app, you would call your API here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const now = new Date().toISOString();
       
       if (selectedProduct) {
+        // Update existing product
+        const { error } = await supabase
+          .from('products')
+          .update({
+            name: productData.name,
+            description: productData.description,
+            price: productData.price,
+            category: productData.category,
+            stock: productData.stock,
+            image: productData.image,
+            updated_at: now
+          })
+          .eq('id', selectedProduct.id);
+        
+        if (error) throw error;
+        
         toast.success(`Product "${productData.name}" updated successfully`);
       } else {
+        // Create new product
+        const { error } = await supabase
+          .from('products')
+          .insert([{
+            name: productData.name,
+            description: productData.description,
+            price: productData.price,
+            category: productData.category,
+            stock: productData.stock,
+            image: productData.image,
+            views: 0,
+            created_at: now,
+            updated_at: now
+          }]);
+        
+        if (error) throw error;
+        
         toast.success(`Product "${productData.name}" created successfully`);
       }
       
       setIsFormDialogOpen(false);
       refetch();
-    } catch (error) {
-      toast.error(selectedProduct ? 'Failed to update product' : 'Failed to create product');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save product');
       console.error(error);
     }
   };

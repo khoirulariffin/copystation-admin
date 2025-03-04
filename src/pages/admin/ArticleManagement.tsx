@@ -10,8 +10,10 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Article } from '@/types';
-import { mockArticles, articleCategories } from '@/data/mockData';
+import { articleCategories } from '@/data/mockData';
 import ArticleForm from '@/components/admin/ArticleForm';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ArticleManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,11 +22,45 @@ const ArticleManagement = () => {
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const { user } = useAuth();
   
-  // In a real app, this would be a query to your backend/API
+  // Fetch articles from Supabase with author information
   const { data: articles, isLoading, refetch } = useQuery({
     queryKey: ['articles'],
-    queryFn: () => Promise.resolve(mockArticles),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('articles')
+        .select(`
+          *,
+          author:author_id (
+            id,
+            name,
+            avatar
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        toast.error('Failed to fetch articles');
+        throw error;
+      }
+      
+      return data.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        content: article.content,
+        category: article.category,
+        author: {
+          id: article.author.id,
+          name: article.author.name,
+          avatar: article.author.avatar
+        },
+        views: article.views,
+        createdAt: article.created_at,
+        updatedAt: article.updated_at,
+        image: article.image
+      }));
+    },
   });
 
   const filteredArticles = articles?.filter(article => {
@@ -99,14 +135,18 @@ const ArticleManagement = () => {
     setIsDeleting(true);
     
     try {
-      // In a real app, you would call your API here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase
+        .from('articles')
+        .delete()
+        .eq('id', selectedArticle.id);
+      
+      if (error) throw error;
       
       toast.success(`Article "${selectedArticle.title}" deleted successfully`);
       setIsDeleteDialogOpen(false);
       refetch();
-    } catch (error) {
-      toast.error('Failed to delete article');
+    } catch (error: any) {
+      toast.error(`Failed to delete article: ${error.message}`);
       console.error(error);
     } finally {
       setIsDeleting(false);
@@ -114,20 +154,54 @@ const ArticleManagement = () => {
   };
 
   const handleFormSubmit = async (articleData: Partial<Article>) => {
+    if (!user) {
+      toast.error('You must be logged in to perform this action');
+      return;
+    }
+    
     try {
-      // In a real app, you would call your API here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const now = new Date().toISOString();
       
       if (selectedArticle) {
+        // Update existing article
+        const { error } = await supabase
+          .from('articles')
+          .update({
+            title: articleData.title,
+            content: articleData.content,
+            category: articleData.category,
+            image: articleData.image,
+            updated_at: now
+          })
+          .eq('id', selectedArticle.id);
+        
+        if (error) throw error;
+        
         toast.success(`Article "${articleData.title}" updated successfully`);
       } else {
+        // Create new article
+        const { error } = await supabase
+          .from('articles')
+          .insert([{
+            title: articleData.title,
+            content: articleData.content,
+            category: articleData.category,
+            author_id: user.id,
+            image: articleData.image,
+            views: 0,
+            created_at: now,
+            updated_at: now
+          }]);
+        
+        if (error) throw error;
+        
         toast.success(`Article "${articleData.title}" created successfully`);
       }
       
       setIsFormDialogOpen(false);
       refetch();
-    } catch (error) {
-      toast.error(selectedArticle ? 'Failed to update article' : 'Failed to create article');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save article');
       console.error(error);
     }
   };
