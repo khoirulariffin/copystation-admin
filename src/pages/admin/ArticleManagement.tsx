@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -24,18 +23,16 @@ const ArticleManagement = () => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { user } = useAuth();
   
-  // Fetch articles from Supabase with author information
   const { data: articles, isLoading, refetch } = useQuery({
     queryKey: ['articles'],
     queryFn: async () => {
-      // Modified query to properly join with profiles
       const { data, error } = await supabase
         .from('articles')
         .select(`
           *,
           profiles:author_id (
             id,
-            name,
+            email,
             avatar
           )
         `)
@@ -54,7 +51,7 @@ const ArticleManagement = () => {
         category: article.category,
         author: {
           id: article.profiles.id,
-          name: article.profiles.name,
+          name: article.profiles.email,
           avatar: article.profiles.avatar
         },
         views: article.views,
@@ -66,12 +63,10 @@ const ArticleManagement = () => {
   });
 
   const filteredArticles = articles?.filter(article => {
-    // Filter by search term
     const matchesSearchTerm = !searchTerm || 
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.content.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter by category
     const matchesCategory = selectedCategory === 'all' || 
       article.category === selectedCategory;
     
@@ -165,7 +160,6 @@ const ArticleManagement = () => {
       const now = new Date().toISOString();
       
       if (selectedArticle) {
-        // Update existing article
         const { error } = await supabase
           .from('articles')
           .update({
@@ -181,7 +175,6 @@ const ArticleManagement = () => {
         
         toast.success(`Article "${articleData.title}" updated successfully`);
       } else {
-        // Create new article
         const { error } = await supabase
           .from('articles')
           .insert([{

@@ -5,12 +5,16 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 }
 
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    })
   }
 
   try {
@@ -83,14 +87,15 @@ serve(async (req) => {
         })
 
       case 'inviteUser':
-        const { email, role: inviteRole } = data
-        // Generate a secure random password
-        const password = Math.random().toString(36).slice(2) + Math.random().toString(36).toUpperCase().slice(2)
+        const { email, role: inviteRole, password } = data
+        
+        // Use provided password or generate a secure random one if not provided
+        const userPassword = password || (Math.random().toString(36).slice(2) + Math.random().toString(36).toUpperCase().slice(2))
         
         // Create user with Supabase Auth
         const { data: newUser, error: inviteError } = await supabaseAdmin.auth.admin.createUser({
           email,
-          password,
+          password: userPassword,
           email_confirm: true, // Auto-confirm the email
         })
         
@@ -100,7 +105,7 @@ serve(async (req) => {
         if (newUser?.user) {
           await supabaseAdmin
             .from('profiles')
-            .update({ role: inviteRole })
+            .update({ role: inviteRole, email: email })
             .eq('id', newUser.user.id)
         }
         

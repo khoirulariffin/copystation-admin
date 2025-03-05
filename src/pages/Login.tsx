@@ -57,11 +57,6 @@ const Login = () => {
       const { data: adminData, error: adminError } = await supabase.auth.signUp({
         email: 'admin@example.com',
         password: 'password123',
-        options: {
-          data: {
-            name: 'Admin User'
-          }
-        }
       });
       
       if (adminError) throw adminError;
@@ -70,7 +65,7 @@ const Login = () => {
       if (adminData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ role: 'admin' })
+          .update({ role: 'admin', email: 'admin@example.com' })
           .eq('id', adminData.user.id);
           
         if (profileError) throw profileError;
@@ -80,11 +75,6 @@ const Login = () => {
       const { data: editorData, error: editorError } = await supabase.auth.signUp({
         email: 'editor@example.com',
         password: 'password123',
-        options: {
-          data: {
-            name: 'Editor User'
-          }
-        }
       });
       
       if (editorError) throw editorError;
@@ -93,7 +83,7 @@ const Login = () => {
       if (editorData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ role: 'editor' })
+          .update({ role: 'editor', email: 'editor@example.com' })
           .eq('id', editorData.user.id);
           
         if (profileError) throw profileError;

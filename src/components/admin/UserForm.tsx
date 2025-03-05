@@ -24,14 +24,14 @@ import { User } from '@/types';
 
 // Define the base schema for common fields
 const baseSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().min(2, 'Email must be at least 2 characters'),
   role: z.enum(['admin', 'editor', 'viewer']),
   avatar: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
-// Schema with email for creating new users
+// Schema with password for creating new users
 const newUserSchema = baseSchema.extend({
-  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 // Type for all possible form values
@@ -51,10 +51,10 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   const form = useForm<UserFormValues>({
     resolver: zodResolver(isEditing ? baseSchema : newUserSchema),
     defaultValues: {
-      name: user?.name || '',
+      email: user?.email || '',
       role: user?.role || 'viewer',
       avatar: user?.avatar || '',
-      ...(isEditing ? {} : { email: '' }),
+      ...(isEditing ? {} : { password: '' }),
     } as UserFormValues,
   });
 
@@ -66,36 +66,36 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="user@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         {!isEditing && (
-          // When adding a new user, we need to include the email field
+          // When adding a new user, we need to include the password field
           <FormField
             control={form.control}
-            name={"email" as keyof UserFormValues}
+            name={"password" as keyof UserFormValues}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="user@example.com" {...field} />
+                  <Input type="password" placeholder="••••••••" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         )}
-        
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         
         <FormField
           control={form.control}

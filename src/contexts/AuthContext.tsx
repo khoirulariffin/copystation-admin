@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,6 @@ import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 
 type User = {
   id: string;
-  name: string;
   email: string;
   role: "admin" | "editor" | "viewer";
   avatar?: string;
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.warn("Quick profile fetch failed, using minimal data");
         return {
           id: userId,
-          name: "User",
+          email: "user@example.com",
           role: "viewer" as const,
         };
       }
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.warn("Profile fetch failed or timed out");
       return {
         id: userId,
-        name: "User",
+        email: "user@example.com",
         role: "viewer" as const,
       };
     }
@@ -74,8 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (profile) {
         setUser({
           id: session.user.id,
-          name: profile.name || session.user.email?.split("@")[0] || "User",
-          email: session.user.email || "",
+          email: profile.email || session.user.email || "user@example.com",
           role: profile.role || "viewer",
           avatar:
             profile.avatar ||
@@ -88,8 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Fallback user data setup");
       setUser({
         id: session.user.id,
-        name: session.user.email?.split("@")[0] || "User",
-        email: session.user.email || "",
+        email: session.user.email || "user@example.com",
         role: "viewer",
       });
     } finally {
