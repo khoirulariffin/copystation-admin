@@ -39,6 +39,19 @@ const getUserSchema = (isEditing = false) => {
       });
 };
 
+// Define types for form values based on schema
+type BaseUserFormValues = {
+  name: string;
+  role: 'admin' | 'editor' | 'viewer';
+  avatar?: string;
+};
+
+type NewUserFormValues = BaseUserFormValues & {
+  email: string;
+};
+
+type UserFormValues = BaseUserFormValues | NewUserFormValues;
+
 type UserFormProps = {
   user: any | null;
   onSubmit: (data: any) => void;
@@ -49,7 +62,7 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   const isEditing = !!user;
   const schema = getUserSchema(isEditing);
   
-  // Define the form
+  // Define the form with correct typing
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
