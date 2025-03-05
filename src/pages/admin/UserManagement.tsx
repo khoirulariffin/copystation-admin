@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { User, Edit, Trash2, UserPlus } from 'lucide-react';
+import { User as UserIcon, Edit, Trash2, UserPlus } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,12 +20,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from '@/components/ui/input';
+import { User } from '@/types';
 
 type UserProfile = {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: 'admin' | 'editor' | 'viewer'; // Update to use same union type as the User type
   avatar?: string;
   created_at: string;
   last_login?: string;
