@@ -82,6 +82,35 @@ serve(async (req) => {
           status: 200,
         })
 
+      case 'createUser':
+        const { email, password, name, role: newUserRole, avatar } = data
+        
+        // Create user with Supabase Auth
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true, // Auto-confirm the email
+        })
+        
+        if (createError) throw createError
+        
+        // Update the user's profile in profiles
+        if (newUser?.user) {
+          await supabaseAdmin
+            .from('profiles')
+            .update({ 
+              name: name,
+              role: newUserRole,
+              avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
+            })
+            .eq('id', newUser.user.id)
+        }
+        
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          status: 200,
+        })
+
       case 'inviteUser':
         const { email, role: inviteRole } = data
         // Generate a secure random password

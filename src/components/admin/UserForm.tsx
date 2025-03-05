@@ -32,6 +32,7 @@ const baseSchema = z.object({
 // Schema with email for creating new users
 const newUserSchema = baseSchema.extend({
   email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 // Type for all possible form values
@@ -54,7 +55,7 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
       name: user?.name || '',
       role: user?.role || 'viewer',
       avatar: user?.avatar || '',
-      ...(isEditing ? {} : { email: '' }),
+      ...(isEditing ? {} : { email: '', password: '' }),
     } as UserFormValues,
   });
 
@@ -67,20 +68,35 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {!isEditing && (
-          // When adding a new user, we need to include the email field
-          <FormField
-            control={form.control}
-            name={"email" as keyof UserFormValues}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="user@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name={"email" as keyof UserFormValues}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="user@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name={"password" as keyof UserFormValues}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
         )}
         
         <FormField

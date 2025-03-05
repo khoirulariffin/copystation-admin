@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { User as UserIcon, Edit, Trash2, UserPlus } from 'lucide-react';
+import { UserIcon, Edit, Trash2, UserPlus } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,7 +69,8 @@ const UserManagement = () => {
             ...profile,
             // Ensure role is one of the valid types
             role: profile.role as 'admin' | 'editor' | 'viewer',
-            email: user?.email || 'Unknown email'
+            email: user?.email || 'Unknown email',
+            last_login: user?.last_sign_in_at || profile.last_login
           } as UserProfile; // Explicitly cast to UserProfile type
         } catch (err) {
           console.warn(`Couldn't fetch email for user ${profile.id}:`, err);
@@ -187,7 +188,7 @@ const UserManagement = () => {
     }
   };
 
-  const handleFormSubmit = async (userData: Partial<UserProfile>) => {
+  const handleFormSubmit = async (userData: Partial<User> & { password?: string }) => {
     try {
       if (selectedUser) {
         // Update existing user
@@ -216,20 +217,26 @@ const UserManagement = () => {
         toast.success(`User "${userData.name}" updated successfully`);
       } else {
         // Create new user with edge function
-        if (!userData.email || !userData.role) {
-          throw new Error('Email and role are required');
+        if (!userData.email || !userData.role || !userData.password) {
+          throw new Error('Email, password, and role are required');
         }
         
         const { error } = await supabase.functions.invoke('admin-operations', {
           body: { 
-            action: 'inviteUser', 
-            data: { email: userData.email, role: userData.role }
+            action: 'createUser', 
+            data: { 
+              email: userData.email, 
+              password: userData.password,
+              name: userData.name,
+              role: userData.role,
+              avatar: userData.avatar
+            }
           }
         });
         
         if (error) throw new Error(error);
         
-        toast.success(`User invited successfully. They will receive an email with instructions.`);
+        toast.success(`User "${userData.name}" created successfully.`);
       }
       
       setIsFormDialogOpen(false);
