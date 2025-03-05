@@ -21,35 +21,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// Define validation schema based on whether we're creating or editing
-const getUserSchema = (isEditing = false) => {
-  // Base schema fields
-  const baseSchema = {
-    name: z.string().min(2, 'Name must be at least 2 characters'),
-    role: z.enum(['admin', 'editor', 'viewer']),
-    avatar: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  };
-  
-  // Add email field only for creating new users
-  return isEditing 
-    ? z.object(baseSchema)
-    : z.object({
-        ...baseSchema,
-        email: z.string().email('Invalid email address'),
-      });
-};
+// Define the base schema for common fields
+const baseSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  role: z.enum(['admin', 'editor', 'viewer']),
+  avatar: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+});
 
-// Define types for form values based on schema
-type BaseUserFormValues = {
-  name: string;
-  role: 'admin' | 'editor' | 'viewer';
-  avatar?: string;
-};
+// Schema with email for creating new users
+const newUserSchema = baseSchema.extend({
+  email: z.string().email('Invalid email address'),
+});
 
-type NewUserFormValues = BaseUserFormValues & {
-  email: string;
-};
+// Type for the base form values
+type BaseUserFormValues = z.infer<typeof baseSchema>;
 
+// Type for new user form values
+type NewUserFormValues = z.infer<typeof newUserSchema>;
+
+// Union type for all possible form values
 type UserFormValues = BaseUserFormValues | NewUserFormValues;
 
 type UserFormProps = {
@@ -60,7 +50,9 @@ type UserFormProps = {
 
 const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   const isEditing = !!user;
-  const schema = getUserSchema(isEditing);
+  
+  // Use the appropriate schema based on whether we're editing
+  const schema = isEditing ? baseSchema : newUserSchema;
   
   // Define the form with correct typing
   const form = useForm<z.infer<typeof schema>>({
@@ -82,6 +74,7 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {!isEditing && (
+          // TypeScript now recognizes email is a valid field in newUserSchema
           <FormField
             control={form.control}
             name="email" 
