@@ -59,7 +59,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       ...values,
       author: {
         id: user.id,
-        name: user.name,
+        name: user.email, // Using email instead of name now
         avatar: user.avatar,
       },
     };
