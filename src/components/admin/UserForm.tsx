@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { User } from '@/types';
 
 // Define the base schema for common fields
 const baseSchema = z.object({
@@ -33,40 +34,32 @@ const newUserSchema = baseSchema.extend({
   email: z.string().email('Invalid email address'),
 });
 
-// Type for the base form values
-type BaseUserFormValues = z.infer<typeof baseSchema>;
+// Type for all possible form values
+type UserFormValues = z.infer<typeof baseSchema> | z.infer<typeof newUserSchema>;
 
-// Type for new user form values
-type NewUserFormValues = z.infer<typeof newUserSchema>;
-
-// Union type for all possible form values
-type UserFormValues = BaseUserFormValues | NewUserFormValues;
-
+// Props for user form
 type UserFormProps = {
-  user: any | null;
-  onSubmit: (data: any) => void;
+  user: Partial<User> | null;
+  onSubmit: (data: UserFormValues) => void;
   onCancel: () => void;
 };
 
 const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
   const isEditing = !!user;
   
-  // Use the appropriate schema based on whether we're editing
-  const schema = isEditing ? baseSchema : newUserSchema;
-  
-  // Define the form with correct typing
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  // Create the form with the correct schema type
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(isEditing ? baseSchema : newUserSchema),
     defaultValues: {
       name: user?.name || '',
       role: user?.role || 'viewer',
       avatar: user?.avatar || '',
       ...(isEditing ? {} : { email: '' }),
-    },
+    } as UserFormValues,
   });
 
   // Handle form submission
-  const handleSubmit = (values: z.infer<typeof schema>) => {
+  const handleSubmit = (values: UserFormValues) => {
     onSubmit(values);
   };
 
@@ -74,10 +67,10 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {!isEditing && (
-          // TypeScript now recognizes email is a valid field in newUserSchema
+          // When adding a new user, we need to include the email field
           <FormField
             control={form.control}
-            name="email" 
+            name={"email" as keyof UserFormValues}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
