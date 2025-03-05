@@ -28,11 +28,12 @@ const ArticleManagement = () => {
   const { data: articles, isLoading, refetch } = useQuery({
     queryKey: ['articles'],
     queryFn: async () => {
+      // Modified query to properly join with profiles
       const { data, error } = await supabase
         .from('articles')
         .select(`
           *,
-          author:author_id (
+          profiles:author_id (
             id,
             name,
             avatar
@@ -41,7 +42,8 @@ const ArticleManagement = () => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        toast.error('Failed to fetch articles');
+        toast.error(`Failed to fetch articles: ${error.message}`);
+        console.error('Supabase error:', error);
         throw error;
       }
       
@@ -51,9 +53,9 @@ const ArticleManagement = () => {
         content: article.content,
         category: article.category,
         author: {
-          id: article.author.id,
-          name: article.author.name,
-          avatar: article.author.avatar
+          id: article.profiles.id,
+          name: article.profiles.name,
+          avatar: article.profiles.avatar
         },
         views: article.views,
         createdAt: article.created_at,

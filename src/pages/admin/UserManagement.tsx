@@ -1,82 +1,138 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { UserPlus } from 'lucide-react';
+import { User, Edit, Trash2, UserPlus } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
-import SearchFilter from '@/components/admin/SearchFilter';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import DataTable, { Column } from '@/components/admin/DataTable';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User } from '@/types';
 import UserForm from '@/components/admin/UserForm';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from '@/components/ui/input';
+
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  created_at: string;
+  last_login?: string;
+};
 
 const UserManagement = () => {
+  const { user: currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+
   // Fetch users from Supabase
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch profiles from Supabase
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) {
-        toast.error('Failed to fetch users');
+        toast.error(`Failed to fetch users: ${error.message}`);
+        console.error('Supabase error:', error);
         throw error;
       }
-      
-      // Convert to User type
-      return data.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: '', // Email is not stored in profiles table for security
-        role: user.role as 'admin' | 'editor' | 'viewer',
-        avatar: user.avatar,
-        createdAt: user.created_at,
-        lastLogin: user.last_login
-      }));
+
+      // Get emails for the profiles
+      const emailPromises = profiles.map(async (profile) => {
+        try {
+          // Get the user's email from auth.users via our edge function
+          const { data: { user } } = await supabase.functions.invoke('admin-operations', {
+            body: { action: 'getUserById', data: { userId: profile.id } }
+          });
+          
+          return {
+            ...profile,
+            email: user?.email || 'Unknown email'
+          };
+        } catch (err) {
+          console.warn(`Couldn't fetch email for user ${profile.id}:`, err);
+          return {
+            ...profile,
+            email: 'Unknown email'
+          };
+        }
+      });
+
+      return await Promise.all(emailPromises);
     },
   });
 
+  // Filter users based on search term and role filter
   const filteredUsers = users?.filter(user => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(term)
-    );
+    const matchesSearchTerm = !searchTerm || 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRoleFilter = roleFilter === 'all' || user.role === roleFilter;
+    
+    return matchesSearchTerm && matchesRoleFilter;
   }) || [];
 
-  const columns: Column<User>[] = [
+  // Define columns for DataTable
+  const columns: Column<UserProfile>[] = [
     {
-      header: 'Name',
-      accessor: 'name',
+      header: 'User',
+      accessor: (user) => (
+        <div className="flex items-center gap-3">
+          {user.avatar ? (
+            <img 
+              src={user.avatar} 
+              alt={user.name} 
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <User className="h-5 w-5 text-gray-500" />
+            </div>
+          )}
+          <div>
+            <div className="font-medium">{user.name}</div>
+            <div className="text-sm text-gray-500">{user.email}</div>
+          </div>
+        </div>
+      ),
     },
     {
       header: 'Role',
-      accessor: 'role',
-      cell: (user) => (
-        <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full
-          ${user.role === 'admin' ? 'bg-blue-100 text-blue-800' : 
-            user.role === 'editor' ? 'bg-green-100 text-green-800' : 
-            'bg-gray-100 text-gray-800'}`}>
-          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+      accessor: (user) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+          ${user.role === 'admin' ? 'bg-red-100 text-red-800' : 
+           user.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
+           'bg-gray-100 text-gray-800'}`}>
+          {user.role}
         </span>
       ),
     },
     {
+      header: 'Joined Date',
+      accessor: (user) => new Date(user.created_at).toLocaleDateString(),
+    },
+    {
       header: 'Last Login',
-      accessor: (user) => user.lastLogin 
-        ? new Date(user.lastLogin).toLocaleDateString() 
-        : 'Never',
+      accessor: (user) => user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never',
     },
   ];
 
@@ -85,12 +141,18 @@ const UserManagement = () => {
     setIsFormDialogOpen(true);
   };
 
-  const handleEdit = (user: User) => {
+  const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
     setIsFormDialogOpen(true);
   };
 
-  const handleDelete = (user: User) => {
+  const handleDelete = (user: UserProfile) => {
+    // Prevent deleting yourself
+    if (user.id === currentUser?.id) {
+      toast.error("You cannot delete your own account");
+      return;
+    }
+    
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
   };
@@ -101,10 +163,12 @@ const UserManagement = () => {
     setIsDeleting(true);
     
     try {
-      // Delete user via Supabase Auth API
-      const { error } = await supabase.auth.admin.deleteUser(selectedUser.id);
+      // Delete user using our edge function
+      const { error } = await supabase.functions.invoke('admin-operations', {
+        body: { action: 'deleteUser', data: { userId: selectedUser.id } }
+      });
       
-      if (error) throw error;
+      if (error) throw new Error(error);
       
       toast.success(`User "${selectedUser.name}" deleted successfully`);
       setIsDeleteDialogOpen(false);
@@ -117,31 +181,55 @@ const UserManagement = () => {
     }
   };
 
-  const handleFormSubmit = async (userData: Partial<User>) => {
+  const handleFormSubmit = async (userData: Partial<UserProfile>) => {
     try {
       if (selectedUser) {
         // Update existing user
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({
             name: userData.name,
-            role: userData.role,
-            avatar: userData.avatar
+            avatar: userData.avatar,
           })
           .eq('id', selectedUser.id);
         
-        if (error) throw error;
+        if (updateError) throw updateError;
+        
+        // If role is changing, use the edge function to update it
+        if (userData.role && userData.role !== selectedUser.role) {
+          const { error } = await supabase.functions.invoke('admin-operations', {
+            body: { 
+              action: 'updateUserRole', 
+              data: { userId: selectedUser.id, role: userData.role }
+            }
+          });
+          
+          if (error) throw new Error(error);
+        }
         
         toast.success(`User "${userData.name}" updated successfully`);
       } else {
-        // Create new user - this is handled by SignUp and the trigger
-        toast.info('New users need to register through the auth system');
+        // Create new user with edge function
+        if (!userData.email || !userData.role) {
+          throw new Error('Email and role are required');
+        }
+        
+        const { error } = await supabase.functions.invoke('admin-operations', {
+          body: { 
+            action: 'inviteUser', 
+            data: { email: userData.email, role: userData.role }
+          }
+        });
+        
+        if (error) throw new Error(error);
+        
+        toast.success(`User invited successfully. They will receive an email with instructions.`);
       }
       
       setIsFormDialogOpen(false);
       refetch();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update user');
+      toast.error(error.message || 'Failed to save user');
       console.error(error);
     }
   };
@@ -156,11 +244,31 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        placeholder="Search users by name..."
-      />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="col-span-2">
+          <Input
+            placeholder="Search users by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="editor">Editor</SelectItem>
+                <SelectItem value="viewer">Viewer</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center p-8">
@@ -178,7 +286,7 @@ const UserManagement = () => {
       
       <ConfirmDialog
         title="Delete User"
-        description={`Are you sure you want to delete ${selectedUser?.name}? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${selectedUser?.name}"? This action cannot be undone.`}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={confirmDelete}
@@ -186,7 +294,7 @@ const UserManagement = () => {
       />
       
       <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
               {selectedUser ? 'Edit User' : 'Add User'}

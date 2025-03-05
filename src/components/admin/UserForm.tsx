@@ -1,52 +1,89 @@
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User } from '@/types';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
-  role: z.enum(['admin', 'editor', 'viewer'], {
-    required_error: 'Please select a role',
-  }),
-  avatar: z.string().optional(),
-});
+// Define validation schema based on whether we're creating or editing
+const getUserSchema = (isEditing = false) => {
+  // Base schema fields
+  const baseSchema = {
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    role: z.enum(['admin', 'editor', 'viewer']),
+    avatar: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  };
+  
+  // Add email field only for creating new users
+  return isEditing 
+    ? z.object(baseSchema)
+    : z.object({
+        ...baseSchema,
+        email: z.string().email('Invalid email address'),
+      });
+};
 
-type FormValues = z.infer<typeof formSchema>;
-
-interface UserFormProps {
-  user: User | null;
-  onSubmit: (values: FormValues) => void;
+type UserFormProps = {
+  user: any | null;
+  onSubmit: (data: any) => void;
   onCancel: () => void;
-}
+};
 
-const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: user ? {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      avatar: user.avatar || '',
-    } : {
-      name: '',
-      email: '',
-      role: 'viewer',
-      avatar: '',
+const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
+  const isEditing = !!user;
+  const schema = getUserSchema(isEditing);
+  
+  // Define the form
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: user?.name || '',
+      role: user?.role || 'viewer',
+      avatar: user?.avatar || '',
+      ...(isEditing ? {} : { email: '' }),
     },
   });
 
-  const isSubmitting = form.formState.isSubmitting;
+  // Handle form submission
+  const handleSubmit = (values: z.infer<typeof schema>) => {
+    onSubmit(values);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {!isEditing && (
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="user@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
         <FormField
           control={form.control}
           name="name"
@@ -54,37 +91,20 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter name" {...field} />
+                <Input placeholder="John Doe" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter email" type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        
         <FormField
           control={form.control}
           name="role"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a role" />
@@ -100,36 +120,27 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="avatar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Avatar URL (optional)</FormLabel>
+              <FormLabel>Avatar URL</FormLabel>
               <FormControl>
-                <Input placeholder="Enter avatar URL" {...field} />
+                <Input placeholder="https://example.com/avatar.jpg" {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+        
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? 'Saving...'
-              : user
-              ? 'Update User'
-              : 'Create User'}
+          <Button type="submit">
+            {isEditing ? 'Update User' : 'Create User'}
           </Button>
         </div>
       </form>
