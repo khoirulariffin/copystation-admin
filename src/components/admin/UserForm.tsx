@@ -84,7 +84,7 @@ const UserForm = ({ user, onSubmit, onCancel }: UserFormProps) => {
         {!isEditing && (
           <FormField
             control={form.control}
-            name="email"
+            name="email" 
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
