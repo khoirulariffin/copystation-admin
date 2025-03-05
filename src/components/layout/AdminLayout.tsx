@@ -93,12 +93,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
                 <div className="flex-shrink-0">
                   <img 
                     src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff'} 
-                    alt={user?.email || 'User'} 
+                    alt={user?.name || 'User'} 
                     className="h-10 w-10 rounded-full"
                   />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">{user?.email || 'User'}</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
                   <p className="text-xs text-gray-500">{user?.email || 'user@example.com'}</p>
                 </div>
               </div>
@@ -147,12 +147,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
               <div className="flex-shrink-0">
                 <img 
                   src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff'} 
-                  alt={user?.email || 'User'} 
+                  alt={user?.name || 'User'} 
                   className="h-10 w-10 rounded-full"
                 />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">{user?.email || 'User'}</p>
+                <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
                 <p className="text-xs text-gray-500">{user?.email || 'user@example.com'}</p>
               </div>
             </div>

@@ -96,25 +96,25 @@ export type Database = {
         Row: {
           avatar: string | null
           created_at: string
-          email: string
           id: string
           last_login: string | null
+          name: string
           role: string
         }
         Insert: {
           avatar?: string | null
           created_at?: string
-          email: string
           id: string
           last_login?: string | null
+          name: string
           role: string
         }
         Update: {
           avatar?: string | null
           created_at?: string
-          email?: string
           id?: string
           last_login?: string | null
+          name?: string
           role?: string
         }
         Relationships: [

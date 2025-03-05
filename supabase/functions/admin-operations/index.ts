@@ -5,11 +5,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -83,35 +82,6 @@ serve(async (req) => {
           status: 200,
         })
 
-      case 'createUser':
-        const { email, password, name, role: newUserRole, avatar } = data
-        
-        // Create user with Supabase Auth
-        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true, // Auto-confirm the email
-        })
-        
-        if (createError) throw createError
-        
-        // Update the user's profile in profiles
-        if (newUser?.user) {
-          await supabaseAdmin
-            .from('profiles')
-            .update({ 
-              email: email, // Update to use email instead of name
-              role: newUserRole,
-              avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=random&color=fff`
-            })
-            .eq('id', newUser.user.id)
-        }
-        
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          status: 200,
-        })
-
       case 'inviteUser':
         const { email, role: inviteRole } = data
         // Generate a secure random password
@@ -130,10 +100,7 @@ serve(async (req) => {
         if (newUser?.user) {
           await supabaseAdmin
             .from('profiles')
-            .update({ 
-              email: email, // Update to use email instead of name
-              role: inviteRole 
-            })
+            .update({ role: inviteRole })
             .eq('id', newUser.user.id)
         }
         
