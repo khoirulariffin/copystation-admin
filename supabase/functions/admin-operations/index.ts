@@ -100,7 +100,7 @@ serve(async (req) => {
           await supabaseAdmin
             .from('profiles')
             .update({ 
-              name: email, // Update to use email as name
+              email: email, // Update to use email instead of name
               role: newUserRole,
               avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=random&color=fff`
             })
@@ -131,7 +131,7 @@ serve(async (req) => {
           await supabaseAdmin
             .from('profiles')
             .update({ 
-              name: email, // Update to use email as name
+              email: email, // Update to use email instead of name
               role: inviteRole 
             })
             .eq('id', newUser.user.id)
