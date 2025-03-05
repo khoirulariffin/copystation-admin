@@ -1,11 +1,9 @@
-
 import { User, Product, Article, DashboardStats } from '../types';
 
 // Mock Users
 export const mockUsers: User[] = [
   {
     id: '1',
-    name: 'Admin User',
     email: 'admin@example.com',
     role: 'admin',
     avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=3B82F6&color=fff',
@@ -14,7 +12,6 @@ export const mockUsers: User[] = [
   },
   {
     id: '2',
-    name: 'Editor Smith',
     email: 'editor@example.com',
     role: 'editor',
     avatar: 'https://ui-avatars.com/api/?name=Editor+Smith&background=10B981&color=fff',
@@ -23,7 +20,6 @@ export const mockUsers: User[] = [
   },
   {
     id: '3',
-    name: 'Viewer Johnson',
     email: 'viewer@example.com',
     role: 'viewer',
     avatar: 'https://ui-avatars.com/api/?name=Viewer+Johnson&background=EF4444&color=fff',
