@@ -5,10 +5,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
-  // Handle CORS
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -99,9 +100,9 @@ serve(async (req) => {
           await supabaseAdmin
             .from('profiles')
             .update({ 
-              name: name,
+              name: email, // Update to use email as name
               role: newUserRole,
-              avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
+              avatar: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=random&color=fff`
             })
             .eq('id', newUser.user.id)
         }
@@ -129,7 +130,10 @@ serve(async (req) => {
         if (newUser?.user) {
           await supabaseAdmin
             .from('profiles')
-            .update({ role: inviteRole })
+            .update({ 
+              name: email, // Update to use email as name
+              role: inviteRole 
+            })
             .eq('id', newUser.user.id)
         }
         

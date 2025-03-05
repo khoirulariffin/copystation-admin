@@ -5,7 +5,6 @@ import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 
 type User = {
   id: string;
-  name: string;
   email: string;
   role: "admin" | "editor" | "viewer";
   avatar?: string;
@@ -28,7 +27,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
 
-  // Function to get user profile from Supabase
   const getUserProfile = async (userId: string) => {
     try {
       const profilePromise = supabase
@@ -51,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.warn("Quick profile fetch failed, using minimal data");
         return {
           id: userId,
-          name: "User",
+          email: "user@example.com",
           role: "viewer" as const,
         };
       }
@@ -61,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.warn("Profile fetch failed or timed out");
       return {
         id: userId,
-        name: "User",
+        email: "user@example.com",
         role: "viewer" as const,
       };
     }
@@ -74,13 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (profile) {
         setUser({
           id: session.user.id,
-          name: profile.name || session.user.email?.split("@")[0] || "User",
           email: session.user.email || "",
           role: profile.role || "viewer",
           avatar:
             profile.avatar ||
             `https://ui-avatars.com/api/?name=${
-              session.user.email?.split("@")[0]
+              encodeURIComponent(session.user.email || "User")
             }&background=random`,
         });
       }
@@ -88,7 +85,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Fallback user data setup");
       setUser({
         id: session.user.id,
-        name: session.user.email?.split("@")[0] || "User",
         email: session.user.email || "",
         role: "viewer",
       });
@@ -97,7 +93,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Set up auth state listener
   useEffect(() => {
     console.log("Setting up auth state listener");
 
@@ -122,7 +117,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     });
 
-    // Get initial session
     const initializeAuth = async () => {
       console.log("Initializing auth");
       setIsLoading(true);
@@ -172,7 +166,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Login successful, session:", data?.session?.user?.id);
       toast.success("Login successful");
 
-      // Set session explicitly
       if (data?.session) {
         setSession(data.session);
         await setUserData(data.session);

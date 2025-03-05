@@ -24,7 +24,6 @@ import { User } from '@/types';
 
 type UserProfile = {
   id: string;
-  name: string;
   email: string;
   role: 'admin' | 'editor' | 'viewer'; // Role must be one of these specific values
   avatar?: string;
@@ -90,7 +89,6 @@ const UserManagement = () => {
   // Filter users based on search term and role filter
   const filteredUsers = users?.filter(user => {
     const matchesSearchTerm = !searchTerm || 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesRoleFilter = roleFilter === 'all' || user.role === roleFilter;
@@ -107,7 +105,7 @@ const UserManagement = () => {
           {user.avatar ? (
             <img 
               src={user.avatar} 
-              alt={user.name} 
+              alt={user.email} 
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (
@@ -116,8 +114,7 @@ const UserManagement = () => {
             </div>
           )}
           <div>
-            <div className="font-medium">{user.name}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+            <div className="font-medium">{user.email}</div>
           </div>
         </div>
       ),
@@ -177,7 +174,7 @@ const UserManagement = () => {
       
       if (error) throw new Error(error);
       
-      toast.success(`User "${selectedUser.name}" deleted successfully`);
+      toast.success(`User "${selectedUser.email}" deleted successfully`);
       setIsDeleteDialogOpen(false);
       refetch();
     } catch (error: any) {
@@ -195,7 +192,6 @@ const UserManagement = () => {
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
-            name: userData.name,
             avatar: userData.avatar,
           })
           .eq('id', selectedUser.id);
@@ -214,7 +210,7 @@ const UserManagement = () => {
           if (error) throw new Error(error);
         }
         
-        toast.success(`User "${userData.name}" updated successfully`);
+        toast.success(`User "${userData.email}" updated successfully`);
       } else {
         // Create new user with edge function
         if (!userData.email || !userData.role || !userData.password) {
@@ -227,7 +223,7 @@ const UserManagement = () => {
             data: { 
               email: userData.email, 
               password: userData.password,
-              name: userData.name,
+              name: userData.email, // Use email as the name
               role: userData.role,
               avatar: userData.avatar
             }
@@ -236,7 +232,7 @@ const UserManagement = () => {
         
         if (error) throw new Error(error);
         
-        toast.success(`User "${userData.name}" created successfully.`);
+        toast.success(`User "${userData.email}" created successfully.`);
       }
       
       setIsFormDialogOpen(false);
@@ -260,7 +256,7 @@ const UserManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="col-span-2">
           <Input
-            placeholder="Search users by name or email..."
+            placeholder="Search users by email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full"
@@ -299,7 +295,7 @@ const UserManagement = () => {
       
       <ConfirmDialog
         title="Delete User"
-        description={`Are you sure you want to delete "${selectedUser?.name}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${selectedUser?.email}"? This action cannot be undone.`}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={confirmDelete}

@@ -59,7 +59,7 @@ const Login = () => {
         password: 'password123',
         options: {
           data: {
-            name: 'Admin User'
+            email: 'admin@example.com'  // Changed from name to email
           }
         }
       });
@@ -82,7 +82,7 @@ const Login = () => {
         password: 'password123',
         options: {
           data: {
-            name: 'Editor User'
+            email: 'editor@example.com'  // Changed from name to email
           }
         }
       });
