@@ -1,16 +1,20 @@
-
-import React, { useState } from 'react';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
-import { User as UserIcon, Edit, Trash2, UserPlus } from 'lucide-react';
-import AdminLayout from '@/components/layout/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import DataTable, { Column } from '@/components/admin/DataTable';
-import ConfirmDialog from '@/components/admin/ConfirmDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import UserForm from '@/components/admin/UserForm';
+import React, { useState } from "react";
+import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { User as UserIcon, Edit, Trash2, UserPlus } from "lucide-react";
+import AdminLayout from "@/components/layout/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import DataTable, { Column } from "@/components/admin/DataTable";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import UserForm from "@/components/admin/UserForm";
 import {
   Select,
   SelectContent,
@@ -19,13 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from '@/components/ui/input';
-import { User } from '@/types';
+import { Input } from "@/components/ui/input";
+import { User } from "@/types";
 
 type UserProfile = {
   id: string;
   email: string;
-  role: 'admin' | 'editor' | 'viewer'; // Role must be one of these specific values
+  role: "admin" | "editor" | "viewer"; // Role must be one of these specific values
   avatar?: string;
   created_at: string;
   last_login?: string;
@@ -33,26 +37,30 @@ type UserProfile = {
 
 const UserManagement = () => {
   const { user: currentUser } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
 
   // Fetch users from Supabase
-  const { data: users, isLoading, refetch } = useQuery({
-    queryKey: ['users'],
+  const {
+    data: users,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["users"],
     queryFn: async () => {
       // Fetch profiles from Supabase
       const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) {
         toast.error(`Failed to fetch users: ${error.message}`);
-        console.error('Supabase error:', error);
+        console.error("Supabase error:", error);
         throw error;
       }
 
@@ -60,23 +68,25 @@ const UserManagement = () => {
       const emailPromises = profiles.map(async (profile) => {
         try {
           // Get the user's email from auth.users via our edge function
-          const { data: { user } } = await supabase.functions.invoke('admin-operations', {
-            body: { action: 'getUserById', data: { userId: profile.id } }
+          const {
+            data: { user },
+          } = await supabase.functions.invoke("admin-operations", {
+            body: { action: "getUserById", data: { userId: profile.id } },
           });
-          
+
           return {
             ...profile,
             // Ensure role is one of the valid types
-            role: profile.role as 'admin' | 'editor' | 'viewer',
-            email: user?.email || 'Unknown email'
+            role: profile.role as "admin" | "editor" | "viewer",
+            email: profile?.email || "Unknown email",
           } as UserProfile; // Explicitly cast to UserProfile type
         } catch (err) {
           console.warn(`Couldn't fetch email for user ${profile.id}:`, err);
           return {
             ...profile,
             // Ensure role is one of the valid types
-            role: profile.role as 'admin' | 'editor' | 'viewer',
-            email: 'Unknown email'
+            role: profile.role as "admin" | "editor" | "viewer",
+            email: "Unknown email",
           } as UserProfile; // Explicitly cast to UserProfile type
         }
       });
@@ -86,25 +96,44 @@ const UserManagement = () => {
   });
 
   // Filter users based on search term and role filter
-  const filteredUsers = users?.filter(user => {
-    const matchesSearchTerm = !searchTerm || 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRoleFilter = roleFilter === 'all' || user.role === roleFilter;
-    
-    return matchesSearchTerm && matchesRoleFilter;
-  }) || [];
+  const filteredUsers =
+    users?.filter((user) => {
+      const matchesSearchTerm =
+        !searchTerm ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesRoleFilter =
+        roleFilter === "all" || user.role === roleFilter;
+
+      return matchesSearchTerm && matchesRoleFilter;
+    }) || [];
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date
+      .toLocaleString("id-ID", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      })
+      .replace(/\//g, "-")
+      .replace(",", "");
+  };
 
   // Define columns for DataTable
   const columns: Column<UserProfile>[] = [
     {
-      header: 'User',
+      header: "User",
       accessor: (user) => (
         <div className="flex items-center gap-3">
           {user.avatar ? (
-            <img 
-              src={user.avatar} 
-              alt={user.email} 
+            <img
+              src={user.avatar}
+              alt={user.email}
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (
@@ -119,23 +148,30 @@ const UserManagement = () => {
       ),
     },
     {
-      header: 'Role',
+      header: "Role",
       accessor: (user) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-          ${user.role === 'admin' ? 'bg-red-100 text-red-800' : 
-           user.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
-           'bg-gray-100 text-gray-800'}`}>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+          ${
+            user.role === "admin"
+              ? "bg-red-100 text-red-800"
+              : user.role === "editor"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {user.role}
         </span>
       ),
     },
     {
-      header: 'Joined Date',
-      accessor: (user) => new Date(user.created_at).toLocaleDateString(),
+      header: "Joined Date",
+      accessor: (user) => formatTimestamp(user.created_at),
     },
     {
-      header: 'Last Login',
-      accessor: (user) => user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never',
+      header: "Last Login",
+      accessor: (user) =>
+        user.last_login ? formatTimestamp(user.last_login) : "Never",
     },
   ];
 
@@ -155,24 +191,24 @@ const UserManagement = () => {
       toast.error("You cannot delete your own account");
       return;
     }
-    
+
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!selectedUser) return;
-    
+
     setIsDeleting(true);
-    
+
     try {
       // Delete user using our edge function
-      const { error } = await supabase.functions.invoke('admin-operations', {
-        body: { action: 'deleteUser', data: { userId: selectedUser.id } }
+      const { error } = await supabase.functions.invoke("admin-operations", {
+        body: { action: "deleteUser", data: { userId: selectedUser.id } },
       });
-      
+
       if (error) throw new Error(error);
-      
+
       toast.success(`User "${selectedUser.email}" deleted successfully`);
       setIsDeleteDialogOpen(false);
       refetch();
@@ -189,54 +225,57 @@ const UserManagement = () => {
       if (selectedUser) {
         // Update existing user
         const { error: updateError } = await supabase
-          .from('profiles')
+          .from("profiles")
           .update({
             email: userData.email,
             avatar: userData.avatar,
           })
-          .eq('id', selectedUser.id);
-        
+          .eq("id", selectedUser.id);
+
         if (updateError) throw updateError;
-        
+
         // If role is changing, use the edge function to update it
         if (userData.role && userData.role !== selectedUser.role) {
-          const { error } = await supabase.functions.invoke('admin-operations', {
-            body: { 
-              action: 'updateUserRole', 
-              data: { userId: selectedUser.id, role: userData.role }
+          const { error } = await supabase.functions.invoke(
+            "admin-operations",
+            {
+              body: {
+                action: "updateUserRole",
+                data: { userId: selectedUser.id, role: userData.role },
+              },
             }
-          });
-          
+          );
+
           if (error) throw new Error(error);
         }
-        
+
         toast.success(`User "${userData.email}" updated successfully`);
       } else {
         // Create new user with edge function
         if (!userData.email || !userData.role || !userData.password) {
-          throw new Error('Email, password, and role are required');
+          throw new Error("Email, password, and role are required");
         }
-        
-        const { error } = await supabase.functions.invoke('admin-operations', {
-          body: { 
-            action: 'inviteUser', 
-            data: { 
-              email: userData.email, 
+
+        const { error } = await supabase.functions.invoke("admin-operations", {
+          body: {
+            action: "inviteUser",
+            data: {
+              email: userData.email,
               role: userData.role,
-              password: userData.password
-            }
-          }
+              password: userData.password,
+            },
+          },
         });
-        
+
         if (error) throw new Error(error);
-        
+
         toast.success(`User created successfully with email ${userData.email}`);
       }
-      
+
       setIsFormDialogOpen(false);
       refetch();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save user');
+      toast.error(error.message || "Failed to save user");
       console.error(error);
     }
   };
@@ -290,7 +329,7 @@ const UserManagement = () => {
           onDelete={handleDelete}
         />
       )}
-      
+
       <ConfirmDialog
         title="Delete User"
         description={`Are you sure you want to delete "${selectedUser?.email}"? This action cannot be undone.`}
@@ -299,15 +338,13 @@ const UserManagement = () => {
         onConfirm={confirmDelete}
         loading={isDeleting}
       />
-      
+
       <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
-              {selectedUser ? 'Edit User' : 'Add User'}
-            </DialogTitle>
+            <DialogTitle>{selectedUser ? "Edit User" : "Add User"}</DialogTitle>
           </DialogHeader>
-          <UserForm 
+          <UserForm
             user={selectedUser}
             onSubmit={handleFormSubmit}
             onCancel={() => setIsFormDialogOpen(false)}

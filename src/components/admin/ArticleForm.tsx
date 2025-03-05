@@ -1,21 +1,37 @@
-
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Article } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Article } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters'),
-  content: z.string().min(20, 'Content must be at least 20 characters'),
-  category: z.string().min(1, 'Please select a category'),
-  image: z.string().url('Please enter a valid image URL').optional().or(z.literal('')),
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  content: z.string().min(20, "Content must be at least 20 characters"),
+  category: z.string().min(1, "Please select a category"),
+  image: z
+    .string()
+    .url("Please enter a valid image URL")
+    .optional()
+    .or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -27,27 +43,29 @@ interface ArticleFormProps {
   onCancel: () => void;
 }
 
-const ArticleForm: React.FC<ArticleFormProps> = ({ 
-  article, 
-  categories, 
-  onSubmit, 
-  onCancel 
+const ArticleForm: React.FC<ArticleFormProps> = ({
+  article,
+  categories,
+  onSubmit,
+  onCancel,
 }) => {
   const { user } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: article ? {
-      title: article.title,
-      content: article.content,
-      category: article.category,
-      image: article.image || '',
-    } : {
-      title: '',
-      content: '',
-      category: '',
-      image: '',
-    },
+    defaultValues: article
+      ? {
+          title: article.title,
+          content: article.content,
+          category: article.category,
+          image: article.image || "",
+        }
+      : {
+          title: "",
+          content: "",
+          category: "",
+          image: "",
+        },
   });
 
   const isSubmitting = form.formState.isSubmitting;
@@ -59,7 +77,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       ...values,
       author: {
         id: user.id,
-        name: user.name,
+        name: user.email,
         avatar: user.avatar,
       },
     };
@@ -90,10 +108,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -101,7 +116,9 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
                 </FormControl>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -117,10 +134,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
             <FormItem>
               <FormLabel>Content</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Write article content here..." 
+                <Textarea
+                  placeholder="Write article content here..."
                   className="min-h-[200px]"
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -142,15 +159,16 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           )}
         />
 
-        {form.watch('image') && (
+        {form.watch("image") && (
           <div className="rounded border p-4">
             <p className="text-sm font-medium mb-2">Image Preview</p>
-            <img 
-              src={form.watch('image')} 
-              alt="Article preview" 
+            <img
+              src={form.watch("image")}
+              alt="Article preview"
               className="w-full h-40 object-contain rounded bg-gray-50"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
+                (e.target as HTMLImageElement).src =
+                  "https://placehold.co/600x400?text=No+Image";
               }}
             />
           </div>
@@ -167,10 +185,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
-              ? 'Saving...'
+              ? "Saving..."
               : article
-              ? 'Update Article'
-              : 'Create Article'}
+              ? "Update Article"
+              : "Create Article"}
           </Button>
         </div>
       </form>

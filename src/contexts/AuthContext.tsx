@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -173,6 +172,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Set session explicitly
       if (data?.session) {
         setSession(data.session);
+
+        const profile = await getUserProfile(data.session.user.id);
+
+        // Update last_login timestamp in profiles table
+        try {
+          // Try upsert directly with RLS bypass if possible
+          const { data: upsertData, error: upsertError } = await supabase
+            .from("profiles")
+            .upsert(
+              [
+                {
+                  id: profile.id,
+                  email: profile.email,
+                  role: profile.role,
+                  last_login: new Date().toISOString(),
+                  avatar: profile.avatar,
+                },
+              ],
+              { onConflict: "id" }
+            )
+            .select();
+
+          if (upsertError) {
+            console.error("Profile upsert failed:", upsertError);
+
+            // If RLS error, try to use service role if available
+            if (upsertError.code === "42501") {
+              console.log(
+                "Attempting to use admin functions for profile update"
+              );
+
+              // This would require a server-side function with admin privileges
+              // You might need to create a serverless function or API endpoint
+              // that has the service_role key to bypass RLS
+
+              // For now, we'll continue with the session but log the issue
+              console.warn(
+                "RLS prevented profile update - consider creating a server function"
+              );
+            }
+          } else {
+            console.log("Profile upserted successfully:", upsertData);
+          }
+        } catch (updateErr) {
+          console.warn("Error in profile update process:", updateErr);
+        }
+
         await setUserData(data.session);
       }
     } catch (error: any) {
