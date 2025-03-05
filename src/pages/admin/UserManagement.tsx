@@ -26,7 +26,7 @@ type UserProfile = {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'editor' | 'viewer'; // Update to use same union type as the User type
+  role: 'admin' | 'editor' | 'viewer'; // Role must be one of these specific values
   avatar?: string;
   created_at: string;
   last_login?: string;
@@ -67,14 +67,18 @@ const UserManagement = () => {
           
           return {
             ...profile,
+            // Ensure role is one of the valid types
+            role: profile.role as 'admin' | 'editor' | 'viewer',
             email: user?.email || 'Unknown email'
-          };
+          } as UserProfile; // Explicitly cast to UserProfile type
         } catch (err) {
           console.warn(`Couldn't fetch email for user ${profile.id}:`, err);
           return {
             ...profile,
+            // Ensure role is one of the valid types
+            role: profile.role as 'admin' | 'editor' | 'viewer',
             email: 'Unknown email'
-          };
+          } as UserProfile; // Explicitly cast to UserProfile type
         }
       });
 
@@ -107,7 +111,7 @@ const UserManagement = () => {
             />
           ) : (
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-gray-500" />
+              <UserIcon className="h-5 w-5 text-gray-500" />
             </div>
           )}
           <div>
