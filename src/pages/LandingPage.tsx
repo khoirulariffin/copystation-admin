@@ -49,12 +49,14 @@ const LandingPage = () => {
     queryKey: ["featured-articles"],
     queryFn: async () => {
       console.log("Fetching featured articles for landing page");
+
+      // Modify the query to properly join with profiles table
       const { data, error } = await supabase
         .from("articles")
         .select(
           `
           *,
-          profiles(
+          profiles:author_id (
             id,
             email,
             avatar
