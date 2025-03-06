@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -79,13 +78,15 @@ const LandingPage = () => {
         category: article.category,
         author: {
           id: article.profiles?.id || article.author_id,
-          name: article.profiles?.email || 'Unknown Author',
-          avatar: article.profiles?.avatar || 'https://ui-avatars.com/api/?name=Unknown&background=random&color=fff',
+          name: article.profiles?.email || "Unknown Author",
+          avatar:
+            article.profiles?.avatar ||
+            "https://ui-avatars.com/api/?name=Unknown&background=random&color=fff",
         },
         views: article.views,
         createdAt: article.created_at,
         updatedAt: article.updated_at,
-        image: article.image || '',
+        image: article.image || "",
       }));
     },
   });
@@ -340,17 +341,7 @@ const LandingPage = () => {
                         .substring(0, 150)}
                       ...
                     </p>
-                    <div className="mt-auto flex items-center justify-between">
-                      <div className="flex items-center">
-                        <img
-                          src={article.author.avatar}
-                          alt={article.author.name}
-                          className="w-8 h-8 rounded-full mr-2"
-                        />
-                        <span className="text-sm text-gray-600">
-                          {article.author.name}
-                        </span>
-                      </div>
+                    <div className="mt-auto flex items-center justify-end">
                       <Button asChild variant="ghost" size="sm">
                         <Link
                           to={`/articles/${article.id}`}
