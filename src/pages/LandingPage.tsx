@@ -33,7 +33,19 @@ const LandingPage = () => {
         return [];
       }
       
-      return data as Product[];
+      // Map the database fields to match our Product type
+      return data.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        stock: product.stock,
+        image: product.image,
+        views: product.views,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      })) as Product[];
     }
   });
   

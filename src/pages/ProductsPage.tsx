@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -35,7 +34,19 @@ const ProductsPage: React.FC = () => {
         throw error;
       }
 
-      return data as Product[];
+      // Map the database fields to match our Product type
+      return data.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        stock: product.stock,
+        image: product.image,
+        views: product.views,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      })) as Product[];
     }
   });
 
