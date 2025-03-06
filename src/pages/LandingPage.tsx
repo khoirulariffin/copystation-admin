@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -48,6 +49,7 @@ const LandingPage = () => {
   const { data: articles = [] } = useQuery({
     queryKey: ["featured-articles"],
     queryFn: async () => {
+      console.log("Fetching featured articles for landing page");
       const { data, error } = await supabase
         .from("articles")
         .select(
@@ -68,20 +70,22 @@ const LandingPage = () => {
         return [];
       }
 
+      console.log("Received featured articles from Supabase:", data);
+
       return data.map((article: any) => ({
         id: article.id,
         title: article.title,
         content: article.content,
         category: article.category,
         author: {
-          id: article.profiles.id,
-          name: article.profiles.email, // Use email as name
-          avatar: article.profiles.avatar,
+          id: article.profiles?.id || article.author_id,
+          name: article.profiles?.email || 'Unknown Author',
+          avatar: article.profiles?.avatar || 'https://ui-avatars.com/api/?name=Unknown&background=random&color=fff',
         },
         views: article.views,
         createdAt: article.created_at,
         updatedAt: article.updated_at,
-        image: article.image,
+        image: article.image || '',
       }));
     },
   });
