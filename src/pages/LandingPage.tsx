@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -50,18 +49,18 @@ const LandingPage = () => {
     queryKey: ["featured-articles"],
     queryFn: async () => {
       console.log("Fetching featured articles for landing page");
+      
+      // Modify the query to properly join with profiles table
       const { data, error } = await supabase
         .from("articles")
-        .select(
-          `
+        .select(`
           *,
-          profiles(
+          profiles:author_id (
             id,
             email,
             avatar
           )
-        `
-        )
+        `)
         .order("views", { ascending: false })
         .limit(2);
 
@@ -72,21 +71,27 @@ const LandingPage = () => {
 
       console.log("Received featured articles from Supabase:", data);
 
-      return data.map((article: any) => ({
-        id: article.id,
-        title: article.title,
-        content: article.content,
-        category: article.category,
-        author: {
-          id: article.profiles?.id || article.author_id,
-          name: article.profiles?.email || 'Unknown Author',
-          avatar: article.profiles?.avatar || 'https://ui-avatars.com/api/?name=Unknown&background=random&color=fff',
-        },
-        views: article.views,
-        createdAt: article.created_at,
-        updatedAt: article.updated_at,
-        image: article.image || '',
-      }));
+      // Map the database fields to match our Article type
+      return data.map((article: any) => {
+        // Check if profiles data exists
+        const profileData = article.profiles || null;
+        
+        return {
+          id: article.id,
+          title: article.title,
+          content: article.content,
+          category: article.category,
+          author: {
+            id: profileData?.id || article.author_id,
+            name: profileData?.email || 'Unknown Author',
+            avatar: profileData?.avatar || 'https://ui-avatars.com/api/?name=Unknown&background=random&color=fff',
+          },
+          views: article.views,
+          createdAt: article.created_at,
+          updatedAt: article.updated_at,
+          image: article.image || '',
+        };
+      });
     },
   });
 
