@@ -28,14 +28,16 @@ const ArticlesPage = () => {
       console.log("Fetching articles...");
       const { data, error } = await supabase
         .from("articles")
-        .select(`
+        .select(
+          `
           *,
           profiles:author_id (
             id,
             email,
             avatar
           )
-        `)
+        `
+        )
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -49,7 +51,7 @@ const ArticlesPage = () => {
       const mappedArticles = data.map((article: any) => {
         // Check if profiles data exists
         const profileData = article.profiles || null;
-        
+
         return {
           id: article.id,
           title: article.title,
@@ -57,13 +59,15 @@ const ArticlesPage = () => {
           category: article.category,
           author: {
             id: profileData?.id || article.author_id,
-            name: profileData?.email || 'Unknown Author',
-            avatar: profileData?.avatar || 'https://ui-avatars.com/api/?name=Unknown&background=random&color=fff',
+            name: profileData?.email || "Unknown Author",
+            avatar:
+              profileData?.avatar ||
+              "https://ui-avatars.com/api/?name=Unknown&background=random&color=fff",
           },
           views: article.views,
           createdAt: article.created_at,
           updatedAt: article.updated_at,
-          image: article.image || '',
+          image: article.image || "",
         };
       });
 
@@ -134,24 +138,21 @@ const ArticlesPage = () => {
                   />
                 </div>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-2">{article.title}</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    {article.title}
+                  </h3>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {article.content.replace(/<[^>]*>?/gm, "").substring(0, 100)}
+                    {article.content
+                      .replace(/<[^>]*>?/gm, "")
+                      .substring(0, 100)}
                     ...
                   </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <img
-                        src={article.author.avatar}
-                        alt={article.author.name}
-                        className="w-8 h-8 rounded-full mr-2"
-                      />
-                      <span className="text-sm text-gray-700">
-                        {article.author.name}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-end">
                     <Button asChild variant="ghost" size="sm">
-                      <Link to={`/articles/${article.id}`} className="flex items-center">
+                      <Link
+                        to={`/articles/${article.id}`}
+                        className="flex items-center"
+                      >
                         Read More <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
                     </Button>
