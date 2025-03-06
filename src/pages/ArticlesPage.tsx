@@ -26,6 +26,7 @@ const ArticlesPage: React.FC = () => {
   const { data: articles, isLoading } = useQuery({
     queryKey: ['articles'],
     queryFn: async () => {
+      console.log('Fetching articles...');
       const { data, error } = await supabase
         .from('articles')
         .select(`
@@ -43,6 +44,8 @@ const ArticlesPage: React.FC = () => {
         throw error;
       }
 
+      console.log('Received data from Supabase:', data);
+
       // Map the database fields to match our Article type
       return data.map((article: any) => ({
         id: article.id,
@@ -50,14 +53,14 @@ const ArticlesPage: React.FC = () => {
         content: article.content,
         category: article.category,
         author: {
-          id: article.profiles.id,
-          name: article.profiles.email, // Use email as name
-          avatar: article.profiles.avatar,
+          id: article.profiles?.id || article.author_id,
+          name: article.profiles?.email || 'Unknown Author',
+          avatar: article.profiles?.avatar || 'https://ui-avatars.com/api/?name=Unknown&background=random&color=fff',
         },
         views: article.views,
         createdAt: article.created_at,
         updatedAt: article.updated_at,
-        image: article.image,
+        image: article.image || '',
       })) as Article[];
     }
   });
@@ -91,6 +94,8 @@ const ArticlesPage: React.FC = () => {
     
     return matchesSearch && matchesCategory;
   }) || [];
+
+  console.log('Filtered articles:', filteredArticles);
 
   return (
     <PublicLayout>
