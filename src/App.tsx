@@ -11,6 +11,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
 import ArticleManagement from "./pages/admin/ArticleManagement";
+import ProductsPage from "./pages/ProductsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,9 @@ const AppRoutes = () => {
       <Route path="/login" element={
         isAuthenticated ? <Navigate to="/admin" replace /> : <Login />
       } />
+      
+      {/* Public Routes */}
+      <Route path="/products" element={<ProductsPage />} />
       
       {/* Protected Admin Routes */}
       <Route path="/admin" element={

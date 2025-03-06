@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, Plus } from 'lucide-react';
@@ -24,9 +25,12 @@ const ArticleManagement = () => {
   const { user } = useAuth();
   
   const { data: articles, isLoading, refetch } = useQuery({
-    queryKey: ['articles'],
+    queryKey: ['articles', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) return [];
+      
+      // Build the query based on user role
+      let query = supabase
         .from('articles')
         .select(`
           *,
@@ -37,6 +41,13 @@ const ArticleManagement = () => {
           )
         `)
         .order('created_at', { ascending: false });
+      
+      // If user is not admin, only show their own articles
+      if (user.role !== 'admin') {
+        query = query.eq('author_id', user.id);
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         toast.error(`Failed to fetch articles: ${error.message}`);
@@ -51,7 +62,7 @@ const ArticleManagement = () => {
         category: article.category,
         author: {
           id: article.profiles.id,
-          name: article.profiles.email,
+          name: article.profiles.email, // Use email as name
           avatar: article.profiles.avatar
         },
         views: article.views,
@@ -60,6 +71,7 @@ const ArticleManagement = () => {
         image: article.image
       }));
     },
+    enabled: !!user,
   });
 
   const filteredArticles = articles?.filter(article => {
@@ -117,17 +129,34 @@ const ArticleManagement = () => {
   };
 
   const handleEdit = (article: Article) => {
-    setSelectedArticle(article);
-    setIsFormDialogOpen(true);
+    // Only allow edit if admin or if user is the author
+    if (user?.role === 'admin' || article.author.id === user?.id) {
+      setSelectedArticle(article);
+      setIsFormDialogOpen(true);
+    } else {
+      toast.error("You don't have permission to edit this article");
+    }
   };
 
   const handleDelete = (article: Article) => {
-    setSelectedArticle(article);
-    setIsDeleteDialogOpen(true);
+    // Only allow delete if admin or if user is the author
+    if (user?.role === 'admin' || article.author.id === user?.id) {
+      setSelectedArticle(article);
+      setIsDeleteDialogOpen(true);
+    } else {
+      toast.error("You don't have permission to delete this article");
+    }
   };
 
   const confirmDelete = async () => {
-    if (!selectedArticle) return;
+    if (!selectedArticle || !user) return;
+    
+    // Additional permission check
+    if (user.role !== 'admin' && selectedArticle.author.id !== user.id) {
+      toast.error("You don't have permission to delete this article");
+      setIsDeleteDialogOpen(false);
+      return;
+    }
     
     setIsDeleting(true);
     
@@ -160,6 +189,12 @@ const ArticleManagement = () => {
       const now = new Date().toISOString();
       
       if (selectedArticle) {
+        // Check if user is admin or the author of the article
+        if (user.role !== 'admin' && selectedArticle.author.id !== user.id) {
+          toast.error("You don't have permission to edit this article");
+          return;
+        }
+        
         const { error } = await supabase
           .from('articles')
           .update({
