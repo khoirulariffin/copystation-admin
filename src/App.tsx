@@ -12,6 +12,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
 import ArticleManagement from "./pages/admin/ArticleManagement";
 import ProductsPage from "./pages/ProductsPage";
+import ArticlesPage from "./pages/ArticlesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const AppRoutes = () => {
       
       {/* Public Routes */}
       <Route path="/products" element={<ProductsPage />} />
+      <Route path="/articles" element={<ArticlesPage />} />
       
       {/* Protected Admin Routes */}
       <Route path="/admin" element={
