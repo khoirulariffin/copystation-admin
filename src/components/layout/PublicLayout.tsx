@@ -42,15 +42,25 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
+            <div className="flex items-start flex-col p-0">
+              <Link to="/" className="flex items-center leading-none pl-0.5">
+                <span
+                  className={cn(
+                    "text-lg font-bold transition-colors",
+                    scrolled ? "text-gray-900" : "text-white"
+                  )}
+                >
+                  Fotokopi
+                </span>
+              </Link>
+              <Link to="/" className="flex items-center leading-none -mt-2">
                 <span
                   className={cn(
                     "text-2xl font-bold transition-colors",
                     scrolled ? "text-gray-900" : "text-white"
                   )}
                 >
-                  CopyStation
+                  Sabilillah
                 </span>
               </Link>
             </div>
@@ -100,7 +110,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             <div className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl flex flex-col h-full animate-slide-in">
               <div className="p-6 flex items-center justify-between">
                 <span className="text-2xl font-semibold text-primary">
-                  CopyStation
+                  Fotokopi Sabilillah
                 </span>
                 <button
                   type="button"
@@ -124,17 +134,6 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                   ))}
                 </nav>
               </div>
-              <div className="p-4 border-t">
-                <Button
-                  asChild
-                  className="w-full flex items-center justify-center"
-                >
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    <span>Login</span>
-                  </Link>
-                </Button>
-              </div>
             </div>
           </div>
         )}
@@ -146,9 +145,11 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">CopyStation</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Fotokopi Sabilillah
+              </h3>
               <p className="text-gray-400 text-sm">
-                Your one-stop shop for all office supplies and photocopy needs.
+                Toko alat tulis dan kebutuhan sekolah.
               </p>
             </div>
             <div>
@@ -206,10 +207,10 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
               <address className="text-sm text-gray-400 not-italic">
-                <p>123 Office Street</p>
-                <p>Business District, City</p>
-                <p className="mt-2">Email: info@copystation.com</p>
-                <p>Phone: (123) 456-7890</p>
+                <p>Jl. Sabilillah</p>
+                <p>Medan Satria, Kota Bekasi.</p>
+                <p className="mt-2">Email: fotokopisabilillah@gmail.com</p>
+                <p>Tel: (+62) 812-8189-1205</p>
               </address>
               <div className="mt-4 flex space-x-4">
                 {/* Social media icons would go here */}
@@ -218,7 +219,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           </div>
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm text-gray-400">
             <p>
-              &copy; {new Date().getFullYear()} CopyStation. All rights
+              &copy; {new Date().getFullYear()} Fotokopi Sabilillah. All rights
               reserved.
             </p>
           </div>

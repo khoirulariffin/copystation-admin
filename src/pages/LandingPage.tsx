@@ -128,17 +128,22 @@ const LandingPage = () => {
         </div>
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in">
-            Your One-Stop Shop for <br className="hidden md:block" />
-            <span className="text-blue-300">
-              Office Supplies & Photocopy Solutions
-            </span>
+            Toko Alat Tulis <br className="hidden md:block" />
+            <span className="text-blue-300">Kebutuhan Sekolah</span>
           </h1>
           <p
-            className="text-xl text-white/90 mb-8 max-w-2xl mx-auto animate-fade-in"
+            className="text-xl text-white/90 mb-8 max-w-2xl mx-auto animate-fade-in lg:hidden"
             style={{ animationDelay: "200ms" }}
           >
-            From premium stationery to professional printing services, we
-            provide everything your business needs to thrive.
+            Dapatkan berbagai perlengkapan sekolah dan alat tulis dengan harga
+            terjangkau.
+          </p>
+          <p
+            className="text-xl text-white/90 mb-8 max-w-2xl mx-auto animate-fade-in hidden lg:block"
+            style={{ animationDelay: "200ms" }}
+          >
+            Dapatkan berbagai perlengkapan sekolah dan alat tulis dengan harga
+            terjangkau. Dari fotokopi dokumen hingga kebutuhan seni budaya.
           </p>
           <div
             className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in"
@@ -149,7 +154,7 @@ const LandingPage = () => {
               size="lg"
               className="rounded-full px-8 py-6 text-lg"
             >
-              <Link to="/products">Explore Products</Link>
+              <Link to="/products">Jelajahi Produk</Link>
             </Button>
             <Button
               asChild
@@ -157,7 +162,7 @@ const LandingPage = () => {
               size="lg"
               className="rounded-full px-8 py-6 text-lg bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
             >
-              <Link to="/contact">Contact Us</Link>
+              <Link to="/contact">Hubungi Kami</Link>
             </Button>
           </div>
         </div>
@@ -166,7 +171,7 @@ const LandingPage = () => {
             href="#features"
             className="flex flex-col items-center text-white text-sm"
           >
-            <span className="mb-2 opacity-80">Discover More</span>
+            <span className="mb-2 opacity-80">Temukan Lebih Banyak</span>
             <ChevronDown className="w-6 h-6 animate-bounce" />
           </a>
         </div>
@@ -177,32 +182,32 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose CopyStation?
+              Kenapa Memilih Fotokopi Sabilillah?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We provide professional services with premium quality products and
-              unmatched customer support.
+              Kami menyediakan layanan fotokopi yang cepat serta perlengkapan
+              sekolah lengkap dengan harga terjangkau.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                title: "Premium Products",
+                title: "Harga Terjangkau",
                 description:
-                  "We stock only the highest quality office supplies from trusted brands.",
+                  "Layanan fotokopi dan alat tulis dengan harga yang ramah di kantong.",
                 icon: "🏆",
               },
               {
-                title: "Professional Printing",
+                title: "Layanan Cepat & Berkualitas",
                 description:
-                  "State-of-the-art printing services for all your business needs.",
+                  "Didukung dengan peralatan modern untuk hasil cetak yang jelas dan tajam.",
                 icon: "🖨️",
               },
               {
-                title: "Fast Delivery",
+                title: "Perlengkapan Sekolah Lengkap",
                 description:
-                  "Quick delivery to your doorstep, ensuring you never run out of supplies.",
+                  "Menyediakan berbagai keperluan tugas serta alat untuk seni budaya.",
                 icon: "🚚",
               },
             ].map((feature, index) => (
@@ -233,16 +238,15 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Featured Products
+                Produk Unggulan
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl">
-                Discover our most popular office supplies and printing
-                solutions.
+                Jelajahi produk kami yang paling menarik.
               </p>
             </div>
             <Button asChild variant="outline" className="mt-4 md:mt-0">
               <Link to="/products" className="flex items-center">
-                View All Products <ChevronRight className="ml-1 h-4 w-4" />
+                Lihat Semua Produk <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -299,16 +303,15 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Latest Articles
+                Artikel Terbaru
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl">
-                Tips, tricks, and insights to help optimize your office
-                operations.
+                Tips & tricks yang mungkin akan kamu butuhkan.
               </p>
             </div>
             <Button asChild variant="outline" className="mt-4 md:mt-0">
               <Link to="/articles" className="flex items-center">
-                View All Articles <ChevronRight className="ml-1 h-4 w-4" />
+                Lihat Semua Artikel <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -366,85 +369,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Find Us on Social Media
+              Temukan Kami di Media Sosial
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Follow us for the latest updates, tips, and behind-the-scenes
-              content.
+              Ikuti kami untuk mendapatkan informasi terbaru, tips, dan konten
+              menarik lainnya.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
-            {/* YouTube Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <svg
-                  className="w-6 h-6 mr-2 text-red-600"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
-                </svg>
-                <a
-                  href="https://www.youtube.com/@nabilaislahhana"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  Nabila Islahhana
-                </a>
-              </h3>
-              <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/1vILafWfSMU?si=MjN_xb_GP_U-aqv8"
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/Vly0HtpSxyY?si=fUCbYfTWGYNB5yjx"
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/_rgpmai7_LY?si=OuB0uBQ1C-0gPONz"
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              </section>
-              <div className="mt-4 flex justify-center">
-                <Button asChild variant="outline" className="flex items-center">
-                  <a
-                    href="https://www.youtube.com/@nabilaislahhana"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Visit Channel <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-              </div>
-            </div>
-
             {/* Instagram Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-xl font-semibold mb-4 flex items-center">
@@ -465,70 +398,24 @@ const LandingPage = () => {
                 </a>
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
-                <InstagramEmbed
-                  url="https://www.instagram.com/p/DGF9ItyPtDd/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
-                  width={"100%"}
-                />
-                <InstagramEmbed
-                  url="https://www.instagram.com/p/DF7BXqQxJQz/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
-                  width={"100%"}
-                />
-                <InstagramEmbed
-                  url="https://www.instagram.com/p/DF7BVF0RkPk/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
-                  width={"100%"}
-                />
-                {/* {[
-                  {
-                    id: 1,
-                    image:
-                      "https://www.instagram.com/p/Cg58dd7Lc-b/?utm_source=ig_web_button_share_sheet&igsh=MzRlODBiNWFlZA==",
-                    link: "https://www.instagram.com/p/Cg58dd7Lc-b/?utm_source=ig_embed&amp;utm_campaign=loading",
-                  },
-                  {
-                    id: 2,
-                    image:
-                      "https://placehold.co/600x600/pink/white?text=Instagram+Post",
-                    link: "https://www.instagram.com/fotokopisabilillah/",
-                  },
-                  {
-                    id: 3,
-                    image:
-                      "https://placehold.co/600x600/pink/white?text=Instagram+Post",
-                    link: "https://www.instagram.com/fotokopisabilillah/",
-                  },
-                  {
-                    id: 4,
-                    image:
-                      "https://placehold.co/600x600/pink/white?text=Instagram+Post",
-                    link: "https://www.instagram.com/fotokopisabilillah/",
-                  },
-                  {
-                    id: 5,
-                    image:
-                      "https://placehold.co/600x600/pink/white?text=Instagram+Post",
-                    link: "https://www.instagram.com/fotokopisabilillah/",
-                  },
-                  {
-                    id: 6,
-                    image:
-                      "https://placehold.co/600x600/pink/white?text=Instagram+Post",
-                    link: "https://www.instagram.com/fotokopisabilillah/",
-                  },
-                ].map((post) => (
-                  <a
-                    key={post.id}
-                    href={post.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity"
-                  >
-                    <img
-                      src={post.image}
-                      alt={`Instagram post ${post.id}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </a>
-                ))} */}
+                <div className="block">
+                  <InstagramEmbed
+                    url="https://www.instagram.com/p/DGF9ItyPtDd/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+                    width={"100%"}
+                  />
+                </div>
+                <div className="hidden lg:block">
+                  <InstagramEmbed
+                    url="https://www.instagram.com/p/DF7BXqQxJQz/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+                    width={"100%"}
+                  />
+                </div>
+                <div className="hidden lg:block">
+                  <InstagramEmbed
+                    url="https://www.instagram.com/p/DF7BVF0RkPk/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
+                    width={"100%"}
+                  />
+                </div>
               </div>
               <div className="mt-4 flex justify-center">
                 <Button asChild variant="outline" className="flex items-center">
@@ -538,6 +425,76 @@ const LandingPage = () => {
                     rel="noopener noreferrer"
                   >
                     Follow Us <ArrowRight className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+
+            {/* YouTube Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-semibold mb-4 flex items-center">
+                <svg
+                  className="w-6 h-6 mr-2 text-red-600"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                </svg>
+                <a
+                  href="https://www.youtube.com/@nabilaislahhana"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Nabila Islahhana
+                </a>
+              </h3>
+              <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 block">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/1vILafWfSMU?si=MjN_xb_GP_U-aqv8"
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 hidden lg:block">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/Vly0HtpSxyY?si=fUCbYfTWGYNB5yjx"
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 hidden lg:block">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/_rgpmai7_LY?si=OuB0uBQ1C-0gPONz"
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </section>
+              <div className="mt-4 flex justify-center">
+                <Button asChild variant="outline" className="flex items-center">
+                  <a
+                    href="https://www.youtube.com/@nabilaislahhana"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Visit Channel <ArrowRight className="ml-2 h-4 w-4" />
                   </a>
                 </Button>
               </div>
