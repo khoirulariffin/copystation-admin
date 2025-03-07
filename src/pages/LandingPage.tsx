@@ -454,7 +454,7 @@ const LandingPage = () => {
                   <iframe
                     width="100%"
                     height="100%"
-                    src="https://www.youtube.com/embed/1vILafWfSMU?si=MjN_xb_GP_U-aqv8"
+                    src="https://www.youtube.com/embed/c-6Bk4--DuA?si=n3UWMmLsRT1CvBgn"
                     title="YouTube video player"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
