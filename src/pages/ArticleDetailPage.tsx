@@ -23,10 +23,20 @@ const ArticleDetailPage: React.FC = () => {
       
       // Update view count - fix the type issue by using a separate update call
       if (articleId) {
-        await supabase
+        // First, get the current view count
+        const { data: currentArticle } = await supabase
           .from("articles")
-          .update({ views: supabase.rpc('increment_views') })
-          .eq("id", articleId);
+          .select("views")
+          .eq("id", articleId)
+          .single();
+        
+        // Then update with incremented value using the function that returns 1
+        if (currentArticle) {
+          await supabase
+            .from("articles")
+            .update({ views: (currentArticle.views || 0) + 1 })
+            .eq("id", articleId);
+        }
       }
       
       // Get article details with author profile

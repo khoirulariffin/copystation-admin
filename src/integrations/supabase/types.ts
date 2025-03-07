@@ -138,7 +138,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      increment_views: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

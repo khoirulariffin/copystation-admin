@@ -22,10 +22,20 @@ const ProductDetailPage: React.FC = () => {
       
       // Update view count - fix the type issue by using a separate update call
       if (productId) {
-        await supabase
+        // First, get the current view count
+        const { data: currentProduct } = await supabase
           .from("products")
-          .update({ views: supabase.rpc('increment_views') })
-          .eq("id", productId);
+          .select("views")
+          .eq("id", productId)
+          .single();
+        
+        // Then update with incremented value
+        if (currentProduct) {
+          await supabase
+            .from("products")
+            .update({ views: (currentProduct.views || 0) + 1 })
+            .eq("id", productId);
+        }
       }
       
       // Get product details
