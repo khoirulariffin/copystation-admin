@@ -21,7 +21,6 @@ const ArticlesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Fetch articles from supabase
   const { data: articles = [] } = useQuery({
     queryKey: ["articles"],
     queryFn: async () => {
@@ -47,9 +46,7 @@ const ArticlesPage = () => {
 
       console.log("Received data from Supabase:", data);
 
-      // Map the database fields to match our Article type
       const mappedArticles = data.map((article: any) => {
-        // Check if profiles data exists
         const profileData = article.profiles || null;
 
         return {
@@ -90,7 +87,6 @@ const ArticlesPage = () => {
     <PublicLayout>
       <section className="bg-gradient-to-r from-blue-700 to-blue-900 pt-32 pb-16">
         <div className="container mx-auto px-4">
-          {/* Search and Filter Section */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
             <div className="flex items-center w-full md:w-auto">
               <Input
@@ -123,7 +119,6 @@ const ArticlesPage = () => {
             </div>
           </div>
 
-          {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredArticles.map((article) => (
               <Card key={article.id} className="bg-white rounded-lg shadow-md">

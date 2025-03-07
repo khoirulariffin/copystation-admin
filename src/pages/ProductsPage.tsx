@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Grid, List, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,6 @@ const ProductsPage: React.FC = () => {
         throw error;
       }
 
-      // Map the database fields to match our Product type
       return data.map((product) => ({
         id: product.id,
         name: product.name,
@@ -63,7 +63,6 @@ const ProductsPage: React.FC = () => {
         return [];
       }
 
-      // Extract unique categories
       const uniqueCategories = Array.from(
         new Set(data.map((item) => item.category))
       );
@@ -225,7 +224,9 @@ const ProductsPage: React.FC = () => {
                         <span className="font-bold text-lg">
                           Rp {product.price.toLocaleString()}
                         </span>
-                        <Button size="sm">View Details</Button>
+                        <Button size="sm" asChild>
+                          <Link to={`/products/${product.id}`}>View Details</Link>
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -271,7 +272,9 @@ const ProductsPage: React.FC = () => {
                         <span className="font-bold text-xl">
                           Rp {product.price.toLocaleString()}
                         </span>
-                        <Button className="sm:w-auto">View Details</Button>
+                        <Button className="sm:w-auto" asChild>
+                          <Link to={`/products/${product.id}`}>View Details</Link>
+                        </Button>
                       </div>
                     </div>
                   </div>

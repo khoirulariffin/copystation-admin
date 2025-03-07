@@ -12,7 +12,9 @@ import UserManagement from "./pages/admin/UserManagement";
 import ProductManagement from "./pages/admin/ProductManagement";
 import ArticleManagement from "./pages/admin/ArticleManagement";
 import ProductsPage from "./pages/ProductsPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
 import ArticlesPage from "./pages/ArticlesPage";
+import ArticleDetailPage from "./pages/ArticleDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,7 +70,9 @@ const AppRoutes = () => {
       
       {/* Public Routes */}
       <Route path="/products" element={<ProductsPage />} />
+      <Route path="/products/:productId" element={<ProductDetailPage />} />
       <Route path="/articles" element={<ArticlesPage />} />
+      <Route path="/articles/:articleId" element={<ArticleDetailPage />} />
       
       {/* Protected Admin Routes */}
       <Route path="/admin" element={
