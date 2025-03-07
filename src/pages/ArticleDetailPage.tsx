@@ -21,11 +21,13 @@ const ArticleDetailPage: React.FC = () => {
     queryFn: async () => {
       console.log("Fetching article details for ID:", articleId);
       
-      // Update view count
-      await supabase
-        .from("articles")
-        .update({ views: supabase.rpc("increment", { x: 1 }) })
-        .eq("id", articleId);
+      // Update view count - fix the type issue by using a separate update call
+      if (articleId) {
+        await supabase
+          .from("articles")
+          .update({ views: supabase.rpc('increment_views') })
+          .eq("id", articleId);
+      }
       
       // Get article details with author profile
       const { data, error } = await supabase

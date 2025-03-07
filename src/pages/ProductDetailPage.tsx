@@ -20,11 +20,13 @@ const ProductDetailPage: React.FC = () => {
     queryFn: async () => {
       console.log("Fetching product details for ID:", productId);
       
-      // Update view count
-      await supabase
-        .from("products")
-        .update({ views: supabase.rpc("increment", { x: 1 }) })
-        .eq("id", productId);
+      // Update view count - fix the type issue by using a separate update call
+      if (productId) {
+        await supabase
+          .from("products")
+          .update({ views: supabase.rpc('increment_views') })
+          .eq("id", productId);
+      }
       
       // Get product details
       const { data, error } = await supabase
