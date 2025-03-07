@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -14,13 +13,13 @@ import { format } from "date-fns";
 
 const ArticleDetailPage: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
-  
+
   // Fetch article details
   const { data: article, isLoading } = useQuery({
     queryKey: ["article", articleId],
     queryFn: async () => {
       console.log("Fetching article details for ID:", articleId);
-      
+
       // Update view count - fix the type issue by using a separate update call
       if (articleId) {
         // First, get the current view count
@@ -29,7 +28,7 @@ const ArticleDetailPage: React.FC = () => {
           .select("views")
           .eq("id", articleId)
           .single();
-        
+
         // Then update with incremented value using the function that returns 1
         if (currentArticle) {
           await supabase
@@ -38,18 +37,20 @@ const ArticleDetailPage: React.FC = () => {
             .eq("id", articleId);
         }
       }
-      
+
       // Get article details with author profile
       const { data, error } = await supabase
         .from("articles")
-        .select(`
+        .select(
+          `
           *,
           profiles:author_id (
             id,
             email,
             avatar
           )
-        `)
+        `
+        )
         .eq("id", articleId)
         .single();
 
@@ -60,9 +61,9 @@ const ArticleDetailPage: React.FC = () => {
       }
 
       console.log("Received article data:", data);
-      
+
       const profileData = data.profiles || null;
-      
+
       return {
         id: data.id,
         title: data.title,
@@ -71,7 +72,9 @@ const ArticleDetailPage: React.FC = () => {
         author: {
           id: profileData?.id || data.author_id,
           name: profileData?.email || "Unknown Author",
-          avatar: profileData?.avatar || "https://ui-avatars.com/api/?name=Unknown&background=random&color=fff",
+          avatar:
+            profileData?.avatar ||
+            "https://ui-avatars.com/api/?name=Unknown&background=random&color=fff",
         },
         views: data.views,
         createdAt: data.created_at,
@@ -87,17 +90,19 @@ const ArticleDetailPage: React.FC = () => {
     queryKey: ["related-articles", article?.category],
     queryFn: async () => {
       if (!article?.category) return [];
-      
+
       const { data, error } = await supabase
         .from("articles")
-        .select(`
+        .select(
+          `
           *,
           profiles:author_id (
             id,
             email,
             avatar
           )
-        `)
+        `
+        )
         .eq("category", article.category)
         .neq("id", articleId)
         .limit(3);
@@ -109,7 +114,7 @@ const ArticleDetailPage: React.FC = () => {
 
       return data.map((item) => {
         const profileData = item.profiles || null;
-        
+
         return {
           id: item.id,
           title: item.title,
@@ -118,7 +123,9 @@ const ArticleDetailPage: React.FC = () => {
           author: {
             id: profileData?.id || item.author_id,
             name: profileData?.email || "Unknown Author",
-            avatar: profileData?.avatar || "https://ui-avatars.com/api/?name=Unknown&background=random&color=fff",
+            avatar:
+              profileData?.avatar ||
+              "https://ui-avatars.com/api/?name=Unknown&background=random&color=fff",
           },
           views: item.views,
           createdAt: item.created_at,
@@ -162,7 +169,7 @@ const ArticleDetailPage: React.FC = () => {
 
   return (
     <PublicLayout>
-      <div className="bg-gradient-to-r from-blue-700 to-blue-900 py-16">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-900 pt-24 pb-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center text-white mb-4">
             <Link to="/articles" className="flex items-center hover:underline">
@@ -172,30 +179,34 @@ const ArticleDetailPage: React.FC = () => {
             <span className="mx-2">/</span>
             <span>{article.category}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white">{article.title}</h1>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Article Header */}
-        <div className="mb-8 flex flex-wrap items-center text-sm text-gray-500 gap-4">
-          <div className="flex items-center">
-            <User className="h-4 w-4 mr-1" />
-            <span>{article.author.name}</span>
-          </div>
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
-            <span>{format(new Date(article.createdAt), 'MMMM d, yyyy')}</span>
-          </div>
-          <div className="flex items-center">
-            <Eye className="h-4 w-4 mr-1" />
-            <span>{article.views} views</span>
-          </div>
-          <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-            {article.category}
+        <div className="mb-8 flex  text-gray-500 gap-4 flex-col">
+          <h1 className="text-3xl md:text-4xl font-bold text-black">
+            {article.title}
+          </h1>
+          <div className="flex flex-row flex-wrap items-center text-sm gap-4">
+            <div className="flex items-center">
+              <User className="h-4 w-4 mr-1" />
+              <span>{article.author.name}</span>
+            </div>
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>{format(new Date(article.createdAt), "MMMM d, yyyy")}</span>
+            </div>
+            <div className="flex items-center">
+              <Eye className="h-4 w-4 mr-1" />
+              <span>{article.views} views</span>
+            </div>
+            <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+              {article.category}
+            </div>
           </div>
         </div>
-        
+
         {/* Featured Image */}
         <div className="mb-8 rounded-lg overflow-hidden">
           <img
@@ -204,36 +215,37 @@ const ArticleDetailPage: React.FC = () => {
             className="w-full h-auto object-cover"
           />
         </div>
-        
+
         {/* Article Content */}
         <div className="prose prose-blue lg:prose-lg max-w-none mb-12">
           <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </div>
-        
+
         <Separator className="my-12" />
-        
+
         {/* Author Info */}
         <div className="flex items-center mb-12 p-6 bg-gray-50 rounded-lg">
           <img
-            src={article.author.avatar}
-            alt={article.author.name}
+            src="https://ui-avatars.com/api/?name=Fotokopi Sabilillah&background=random&color=fff"
+            alt="Fotokopi Sabilillah"
             className="h-16 w-16 rounded-full mr-6"
           />
           <div>
-            <h3 className="text-lg font-medium mb-1">Written by {article.author.name}</h3>
-            <p className="text-gray-600">
-              Contributor at Fotokopi Sabilillah
-            </p>
+            <h3 className="text-lg font-medium mb-1">Written by Nabila</h3>
+            <p className="text-gray-600">Contributor at Fotokopi Sabilillah</p>
           </div>
         </div>
-        
+
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {relatedArticles.map((relatedArticle) => (
-                <Card key={relatedArticle.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <Card
+                  key={relatedArticle.id}
+                  className="overflow-hidden hover:shadow-md transition-shadow"
+                >
                   <div className="flex flex-col md:flex-row h-full">
                     <div className="md:w-2/5">
                       <img
@@ -250,11 +262,17 @@ const ArticleDetailPage: React.FC = () => {
                         {relatedArticle.title}
                       </h3>
                       <p className="text-gray-600 mb-4 line-clamp-2">
-                        {relatedArticle.content.replace(/<[^>]*>?/gm, "").substring(0, 120)}...
+                        {relatedArticle.content
+                          .replace(/<[^>]*>?/gm, "")
+                          .substring(0, 120)}
+                        ...
                       </p>
                       <div className="mt-auto flex items-center justify-end">
                         <Button asChild variant="ghost" size="sm">
-                          <Link to={`/articles/${relatedArticle.id}`} className="flex items-center">
+                          <Link
+                            to={`/articles/${relatedArticle.id}`}
+                            className="flex items-center"
+                          >
                             Read More <ArrowLeft className="ml-1 h-4 w-4" />
                           </Link>
                         </Button>

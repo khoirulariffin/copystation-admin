@@ -502,39 +502,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-blue-700 to-blue-900 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.3),rgba(255,255,255,0))]"></div>
-        </div>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Optimize Your Office?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Browse our extensive collection of premium office supplies and
-            professional services.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="rounded-full px-8 py-6 text-lg bg-white text-blue-700 hover:bg-white/90"
-            >
-              <Link to="/products">Shop Now</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="rounded-full px-8 py-6 text-lg bg-transparent border-white text-white hover:bg-white/10"
-            >
-              <Link to="/contact">Contact Sales</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
     </PublicLayout>
   );
 };

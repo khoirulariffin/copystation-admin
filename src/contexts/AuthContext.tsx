@@ -71,6 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const profile = await getUserProfile(session.user.id);
 
       if (profile) {
+        console.log(session);
+
         setUser({
           id: session.user.id,
           email: profile.email || session.user.email || "user@example.com",

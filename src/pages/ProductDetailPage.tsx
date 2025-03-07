@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,13 +12,13 @@ import { Product } from "@/types";
 
 const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
-  
+
   // Fetch product details
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
       console.log("Fetching product details for ID:", productId);
-      
+
       // Update view count - fix the type issue by using a separate update call
       if (productId) {
         // First, get the current view count
@@ -28,7 +27,7 @@ const ProductDetailPage: React.FC = () => {
           .select("views")
           .eq("id", productId)
           .single();
-        
+
         // Then update with incremented value
         if (currentProduct) {
           await supabase
@@ -37,7 +36,7 @@ const ProductDetailPage: React.FC = () => {
             .eq("id", productId);
         }
       }
-      
+
       // Get product details
       const { data, error } = await supabase
         .from("products")
@@ -52,7 +51,7 @@ const ProductDetailPage: React.FC = () => {
       }
 
       console.log("Received product data:", data);
-      
+
       return {
         id: data.id,
         name: data.name,
@@ -74,7 +73,7 @@ const ProductDetailPage: React.FC = () => {
     queryKey: ["related-products", product?.category],
     queryFn: async () => {
       if (!product?.category) return [];
-      
+
       const { data, error } = await supabase
         .from("products")
         .select("*")
@@ -87,18 +86,21 @@ const ProductDetailPage: React.FC = () => {
         return [];
       }
 
-      return data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        category: item.category,
-        stock: item.stock,
-        image: item.image,
-        views: item.views,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-      } as Product));
+      return data.map(
+        (item) =>
+          ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            category: item.category,
+            stock: item.stock,
+            image: item.image,
+            views: item.views,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+          } as Product)
+      );
     },
     enabled: !!product?.category,
   });
@@ -135,7 +137,7 @@ const ProductDetailPage: React.FC = () => {
 
   return (
     <PublicLayout>
-      <div className="bg-gradient-to-r from-blue-700 to-blue-900 py-16">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-900 pt-24 pb-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center text-white mb-4">
             <Link to="/products" className="flex items-center hover:underline">
@@ -204,16 +206,8 @@ const ProductDetailPage: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="mt-auto">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="flex-1"
-                  disabled={product.stock === 0}
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to Cart
-                </Button>
-                <Button variant="outline" size="lg" className="flex-1">
+              <div className="flex flex-col sm:flex-row gap-4 w-full lg:max-w-24">
+                <Button variant="outline" size="lg" className="flex-1 py-2">
                   Contact Us
                 </Button>
               </div>

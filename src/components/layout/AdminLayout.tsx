@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -36,8 +36,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Articles", href: "/admin/articles", icon: FileText },
-    { name: "Visit Site", href: "/", icon: Home },
   ];
+
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
