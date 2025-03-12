@@ -15,6 +15,8 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ArticlesPage from "./pages/ArticlesPage";
 import ArticleDetailPage from "./pages/ArticleDetailPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +75,8 @@ const AppRoutes = () => {
       <Route path="/products/:productId" element={<ProductDetailPage />} />
       <Route path="/articles" element={<ArticlesPage />} />
       <Route path="/articles/:articleId" element={<ArticleDetailPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       
       {/* Protected Admin Routes */}
       <Route path="/admin" element={
