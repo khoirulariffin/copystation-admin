@@ -7,14 +7,18 @@
     <meta name="description" content="Lovable Generated Project" />
     <meta name="author" content="Lovable" />
     <meta property="og:image" content="/og-image.png" />
+    <script>
+      (function() {
+        const { pathname } = window.location;
+        if (pathname.length > 1 && !pathname.includes('index.html')) {
+          window.location.replace(window.location.origin + '/copystation-admin/#' + pathname);
+        }
+      })();
+    </script>
     <script type="module" crossorigin src="/copystation-admin/assets/index-Cy0ZOtcj.js"></script>
     <link rel="stylesheet" crossorigin href="/copystation-admin/assets/index-Chdasd2J.css">
   </head>
-
   <body>
     <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script src="//www.instagram.com/embed.js"></script>
   </body>
 </html>
