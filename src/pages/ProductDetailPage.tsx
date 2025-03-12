@@ -1,7 +1,8 @@
+
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ArrowLeft, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,19 @@ const ProductDetailPage: React.FC = () => {
     },
     enabled: !!productId,
   });
+
+  // Function to open WhatsApp with pre-filled message
+  const openWhatsApp = () => {
+    if (!product) return;
+    
+    const phoneNumber = "6281281891205"; // WhatsApp number format (remove + and spaces)
+    const message = encodeURIComponent(`Hai, saya ingin memesan ${product.name} melalui website. bisa tolong dibantu?`);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+    
+    // Open in new tab
+    window.open(whatsappUrl, '_blank');
+    toast.success("Opening WhatsApp chat");
+  };
 
   // Related products query (same category)
   const { data: relatedProducts = [] } = useQuery({
@@ -207,7 +221,13 @@ const ProductDetailPage: React.FC = () => {
             {/* Action Buttons */}
             <div className="mt-auto">
               <div className="flex flex-col sm:flex-row gap-4 w-full lg:max-w-24">
-                <Button variant="outline" size="lg" className="flex-1 py-2">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="flex-1 py-2"
+                  onClick={openWhatsApp}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
                   Contact Us
                 </Button>
               </div>
